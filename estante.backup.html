@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookMatch – Minha Estante</title>
+    <style>
+        @font-face {
+            font-family: 'Radiant Charisma';
+            src: url('fonts/RadiantCharismaDEMO-Medium.ttf') format('truetype');
+        }
+        @font-face {
+            font-family: 'Quicksand';
+            src: url('fonts/Quicksand-Bold.ttf') format('truetype');
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            font-family: 'Quicksand', sans-serif;
+            background-color: #fffdf3;
+        }
+
+        .barra-lateral {
+            width: 280px;
+            min-width: 280px;
+            background-color: #701d1c;
+            display: flex;
+            flex-direction: column;
+            padding: 50px 0;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .barra-lateral::before {
+            content: '';
+            position: absolute;
+            bottom: -80px; left: -80px;
+            width: 300px; height: 300px;
+            background: rgba(173, 114, 114, 0.22);
+            border-radius: 45% 55% 40% 60%;
+            pointer-events: none;
+        }
+
+        .barra-lateral::after {
+            content: '';
+            position: absolute;
+            top: -40px; right: -40px;
+            width: 180px; height: 180px;
+            background: rgba(173, 114, 114, 0.22);
+            border-radius: 60% 40% 55% 45%;
+            pointer-events: none;
+        }
+
+        .container-nome-sistema {
+            padding: 0 30px 50px;
+            z-index: 2;
+        }
+        .container-nome-sistema h1 {
+            font-family: 'Radiant Charisma';
+            font-size: 36px;
+            line-height: 0.9;
+        }
+        .container-nome-sistema h1 span:first-child { color: #bcb24d; }
+        .container-nome-sistema h1 span:last-child  { color: #e6a921; }
+
+        .rotulo-nav {
+            font-size: 10px;
+            letter-spacing: 1.5px;
+            color: rgba(255,255,255,0.5);
+            padding: 20px 30px 10px;
+            z-index: 2;
+            font-weight: bold;
+        }
+        .item-nav {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 30px;
+            color: #ffffff;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.3s;
+            z-index: 2;
+            text-decoration: none;
+        }
+        .item-nav:hover { background: rgba(255,255,255,0.1); }
+        .item-nav.ativo {
+            background: rgba(255,255,255,0.15);
+            font-weight: bold;
+            border-left: 4px solid #e6a921;
+        }
+        .notificacao {
+            margin-left: auto;
+            background: #e4568b;
+            color: #fff;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .conteudo-principal {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 40px;
+            overflow-y: auto;
+        }
+        .topo-estante {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        .topo-estante h2 {
+            font-family: 'Radiant Charisma';
+            font-size: 42px;
+            color: #701d1c;
+        }
+        .botao-adicionar {
+            background-color: #bbbd63;
+            color: #fff;
+            border: none;
+            border-radius: 30px;
+            padding: 12px 25px;
+            font-family: 'Quicksand';
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .botao-adicionar:hover { filter: brightness(1.05); }
+
+        .linha-estatisticas {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .cartao-estatistica {
+            background: #ede9d3;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+        }
+        .titulo-estatistica { font-size: 11px; font-weight: bold; color: #701d1c; letter-spacing: 1px; }
+        .valor-estatistica {
+            font-family: 'Radiant Charisma';
+            font-size: 40px;
+            color: #e6a921;
+            display: block;
+            margin: 5px 0;
+        }
+        .legenda-estatistica { font-size: 11px; color: #a6a6a6; }
+
+        .container-estante { margin-bottom: 35px; }
+        .cabecalho-estante {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .titulo-estante { font-family: 'Quicksand'; font-weight: bold; color: #701d1c; }
+        .contagem-estante {
+            background: #6b7f46; 
+            color: #ffffff;
+            font-size: 12px;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .fila-livros {
+            background: #ede9d3;
+            border-radius: 45px; 
+            padding: 25px 40px;
+            display: flex;
+            gap: 50px; 
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            align-items: center;
+        }
+        .fila-livros::-webkit-scrollbar { display: none; }
+
+        .livro {
+            width: 75px;
+            height: 110px;
+            background-color: #701d1c;
+            border-radius: 8px;
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 10px;
+            box-shadow: 2px 4px 10px rgba(0,0,0,0.15);
+        }
+        .livro:hover { transform: translateY(-5px); }
+        .texto-livro {
+            color: #fff;
+            font-size: 9px;
+            font-weight: bold;
+            text-align: center;
+            line-height: 1.1;
+        }
+
+        /* Tablet (≤ 1024px) */
+        @media (max-width: 1024px) {
+            .barra-lateral {
+                width: 220px;
+                min-width: 220px;
+                padding: 36px 0;
+            }
+            .container-nome-sistema {
+                padding: 0 20px 36px;
+            }
+            .item-nav {
+                padding: 10px 20px;
+            }
+            .rotulo-nav {
+                padding: 16px 20px 8px;
+            }
+            .conteudo-principal {
+                padding: 28px;
+            }
+            .linha-estatisticas {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 14px;
+                margin-bottom: 28px;
+            }
+            .topo-estante h2 {
+                font-size: 32px;
+            }
+        }
+
+        /* Mobile (≤ 640px) */
+        @media (max-width: 640px) {
+            body {
+                flex-direction: column;
+                padding-bottom: 64px;
+            }
+
+            /* Sidebar vira barra de navegação fixa no rodapé */
+            .barra-lateral {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                width: 100%;
+                min-width: unset;
+                height: 64px;
+                flex-direction: row;
+                padding: 0;
+                align-items: center;
+                justify-content: space-around;
+                z-index: 100;
+                overflow: visible;
+            }
+            .barra-lateral::before,
+            .barra-lateral::after {
+                display: none;
+            }
+            .container-nome-sistema,
+            .rotulo-nav {
+                display: none;
+            }
+            .item-nav {
+                flex-direction: column;
+                padding: 8px 6px;
+                font-size: 10px;
+                gap: 3px;
+                text-align: center;
+                border-left: none !important;
+                flex: 1;
+            }
+            .item-nav.ativo {
+                border-left: none;
+                border-top: 3px solid #e6a921;
+                background: rgba(255,255,255,0.15);
+            }
+            .notificacao {
+                display: none;
+            }
+
+            .conteudo-principal {
+                padding: 20px 16px 16px;
+                width: 100%;
+            }
+            .topo-estante {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+            .topo-estante h2 {
+                font-size: 28px;
+            }
+            .botao-adicionar {
+                width: 100%;
+            }
+            .linha-estatisticas {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+            .valor-estatistica {
+                font-size: 32px;
+            }
+            .fila-livros {
+                padding: 16px 20px;
+                gap: 20px;
+                border-radius: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="barra-lateral">
+        <div class="container-nome-sistema">
+            <h1>
+                <span>book</span><br>
+                <span>match</span>
+            </h1>
+        </div>
+
+        <span class="rotulo-nav">PRINCIPAL</span>
+        <a class="item-nav ativo" href="#">📚 Minha Estante</a>
+        <a class="item-nav" href="#">🔍 Descobrir Livros</a>
+        <a class="item-nav" href="#">💬 Mensagens <span class="notificacao">3</span></a>
+        <a class="item-nav" href="#">⚙️ Configurações</a>
+
+        <span class="rotulo-nav">SUAS LISTAS</span>
+        <a class="item-nav" href="#">❤️ Matches</a>
+        <a class="item-nav" href="#">✔️ Trocas</a>
+        <a class="item-nav" href="#">📖 Quero ler</a>
+    </aside>
+
+    <main class="conteudo-principal">
+        <div class="topo-estante">
+            <div>
+                <h2>Minha Estante</h2>
+                <p id="saudacao" style="font-family:'Quicksand'; font-size:14px; color:#a6a6a6; margin-top:4px;"></p>
+            </div>
+            <button class="botao-adicionar">＋ Adicionar Livro</button>
+        </div>
+
+        <div class="linha-estatisticas">
+            <div class="cartao-estatistica">
+                <span class="titulo-estatistica">TOTAL DE LIVROS</span>
+                <span id="stat-livros" class="valor-estatistica">—</span>
+                <span class="legenda-estatistica">na sua estante</span>
+            </div>
+            <div class="cartao-estatistica">
+                <span class="titulo-estatistica">LENDO AGORA</span>
+                <span class="valor-estatistica">—</span>
+                <span class="legenda-estatistica">em breve</span>
+            </div>
+            <div class="cartao-estatistica">
+                <span class="titulo-estatistica">MATCHES</span>
+                <span id="stat-matches" class="valor-estatistica">—</span>
+                <span class="legenda-estatistica">com outros leitores</span>
+            </div>
+            <div class="cartao-estatistica">
+                <span class="titulo-estatistica">GÊNERO FAVORITO</span>
+                <span id="stat-genero" class="valor-estatistica" style="font-size: 24px; padding-top: 12px;">—</span>
+                <span class="legenda-estatistica">preferência cadastrada</span>
+            </div>
+        </div>
+
+        <div class="container-estante">
+            <div class="cabecalho-estante">
+                <span class="titulo-estante">Matches</span>
+                <span class="contagem-estante">9 Livros</span>
+            </div>
+            <div class="fila-livros">
+                <div class="livro" style="background:#3a3a5e;"><span class="texto-livro">Assassin's Creed</span></div>
+                <div class="livro" style="background:#4a6741;"><span class="texto-livro">Rangers</span></div>
+                <div class="livro" style="background:#2c2c2c;"><span class="texto-livro">Sherlock Holmes</span></div>
+                <div class="livro" style="background:#c0392b;"><span class="texto-livro">Diário de um Banana</span></div>
+                <div class="livro" style="background:#e67e22;"><span class="texto-livro">O Poder do Hábito</span></div>
+                <div class="livro" style="background:#5d6d7e;"><span class="texto-livro">Sapiens</span></div>
+                <div class="livro" style="background:#1a1a2e;"><span class="texto-livro">A Bíblia Sagrada</span></div>
+            </div>
+        </div>
+
+        <div class="container-estante">
+            <div class="cabecalho-estante">
+                <span class="titulo-estante">Troca</span>
+                <span class="contagem-estante">10 Livros</span>
+            </div>
+            <div class="fila-livros">
+                <div class="livro" style="background:#6b4c2a;"><span class="texto-livro">Corte de Espinhos</span></div>
+                <div class="livro" style="background:#2e7d32;"><span class="texto-livro">Vade Mecum</span></div>
+                <div class="livro" style="background:#1565c0;"><span class="texto-livro">Teto para Dois</span></div>
+                <div class="livro" style="background:#ad1457;"><span class="texto-livro">Rivalidade Ardente</span></div>
+                <div class="livro" style="background:#33691e;"><span class="texto-livro">Duna</span></div>
+                <div class="livro" style="background:#bf360c;"><span class="texto-livro">Transformers</span></div>
+            </div>
+        </div>
+
+        <div class="container-estante">
+            <div class="cabecalho-estante">
+                <span class="titulo-estante">Quero Ler</span>
+                <span class="contagem-estante">25 Livros</span>
+            </div>
+            <div class="fila-livros">
+                <div class="livro" style="background:#6d4c41;"><span class="texto-livro">Finlay Donovan</span></div>
+                <div class="livro" style="background:#880e4f;"><span class="texto-livro">Chama de Ferro</span></div>
+                <div class="livro" style="background:#1a237e;"><span class="texto-livro">The Binding</span></div>
+                <div class="livro" style="background:#4a148c;"><span class="texto-livro">Powerless</span></div>
+                <div class="livro" style="background:#01579b;"><span class="texto-livro">Academia dos Arquivados</span></div>
+                <div class="livro" style="background:#33691e;"><span class="texto-livro">Assistente do Vilão</span></div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const usuario = JSON.parse(sessionStorage.getItem('usuario') || 'null');
+
+        if (!usuario) {
+            window.location.href = 'index.html';
+        } else {
+            document.getElementById('saudacao').textContent = 'Olá, ' + usuario.nome + '!';
+
+            fetch('api/estante_stats.php?usuario=' + usuario.codusuario)
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('stat-livros').textContent  = data.total_livros;
+                    document.getElementById('stat-matches').textContent = data.matches;
+                    document.getElementById('stat-genero').textContent  = data.genero_favorito;
+                })
+                .catch(() => {});
+        }
+    </script>
+</body>
+</html>
