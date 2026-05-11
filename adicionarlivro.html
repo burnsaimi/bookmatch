@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookMatch - Adicionar Livro</title>
+    <style>
+      @font-face {
+        font-family: 'Radiant Charisma';
+        src: url('fonts/RadiantCharismaDEMO-Medium.ttf') format('truetype');
+      }
+      @font-face {
+        font-family: 'Quicksand';
+        src: url('fonts/Quicksand-Bold.ttf') format('truetype');
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      body {
+        height: 100vh;
+        display: flex;
+        font-family: 'Quicksand', sans-serif;
+        background-color: #fffdf3;
+        overflow: hidden;
+      }
+
+      .barra-lateral {
+        width: 280px;
+        min-width: 280px;
+        background-color: #701d1c;
+        display: flex;
+        flex-direction: column;
+        padding: 50px 0;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+      }
+      .barra-lateral::before {
+        content: '';
+        position: absolute;
+        bottom: -80px; left: -80px;
+        width: 300px; height: 300px;
+        background: rgba(173, 114, 114, 0.22);
+        border-radius: 45% 55% 40% 60%;
+        pointer-events: none;
+      }
+      .barra-lateral::after {
+        content: '';
+        position: absolute;
+        top: -40px; right: -40px;
+        width: 180px; height: 180px;
+        background: rgba(173, 114, 114, 0.22);
+        border-radius: 60% 40% 55% 45%;
+        pointer-events: none;
+      }
+      .container-nome-sistema {
+        padding: 0 30px 50px;
+        z-index: 2;
+      }
+      .container-nome-sistema h1 {
+        font-family: 'Radiant Charisma';
+        font-size: 36px;
+        line-height: 0.9;
+      }
+      .container-nome-sistema h1 span:first-child { color: #bcb24d; }
+      .container-nome-sistema h1 span:last-child  { color: #e6a921; }
+      .rotulo-nav {
+        font-size: 10px;
+        letter-spacing: 1.5px;
+        color: rgba(255,255,255,0.5);
+        padding: 20px 30px 10px;
+        z-index: 2;
+        font-weight: bold;
+      }
+      .item-nav {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 30px;
+        color: #ffffff;
+        font-size: 14px;
+        cursor: pointer;
+        transition: 0.3s;
+        z-index: 2;
+        text-decoration: none;
+      }
+      .item-nav:hover { background: rgba(255,255,255,0.1); }
+      .item-nav.ativo {
+        background: rgba(255,255,255,0.15);
+        font-weight: bold;
+        border-left: 4px solid #e6a921;
+      }
+      .notificacao {
+        margin-left: auto;
+        background: #e4568b;
+        color: #fff;
+        font-size: 10px;
+        padding: 2px 8px;
+        border-radius: 10px;
+      }
+
+      .conteudo {
+        flex: 1;
+        padding: 36px 40px;
+        overflow-y: auto;
+        background-color: #fffdf3;
+      }
+      .page-title {
+        font-family: 'Radiant Charisma';
+        font-size: 28px;
+        color: #2c2c2c;
+        text-align: center;
+        margin-bottom: 28px;
+      }
+
+      .busca-wrap {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .busca-input {
+        flex: 1;
+        height: 48px;
+        border-radius: 30px;
+        background-color: #ede9d3;
+        border: none;
+        padding: 0 20px;
+        font-size: 14px;
+        font-family: 'Quicksand';
+        outline: none;
+        color: #2c2c2c;
+      }
+      .busca-input::placeholder { color: #a6a6a6; }
+
+      .loading {
+        text-align: center;
+        padding: 20px;
+        color: #a6a6a6;
+        font-size: 14px;
+        display: none;
+      }
+      .livro-card {
+        background-color: #ede9d3;
+        border-radius: 14px;
+        padding: 16px;
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+        margin-bottom: 14px;
+        position: relative;
+      }
+      .livro-capa {
+        width: 70px;
+        height: 95px;
+        border-radius: 6px;
+        flex-shrink: 0;
+        object-fit: cover;
+        background-color: #c0b090;
+      }
+      .livro-info { flex: 1; }
+      .livro-titulo {
+        font-family: 'Radiant Charisma';
+        font-size: 17px;
+        color: #2c2c2c;
+        margin-bottom: 2px;
+      }
+      .livro-autor {
+        font-size: 12px;
+        color: #a6a6a6;
+        margin-bottom: 8px;
+      }
+      .tags-row {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-bottom: 8px;
+      }
+      .tag {
+        padding: 3px 12px;
+        border-radius: 14px;
+        background-color: #e6a921;
+        color: white;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .tag.cinza { background-color: #a6a6a6; }
+      .livro-desc {
+        font-size: 12px;
+        color: #6a6a6a;
+        line-height: 1.5;
+      }
+      .btn-adicionar {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background-color: #81833c;
+        color: white;
+        border: none;
+        font-size: 22px;
+        cursor: pointer;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+      }
+      .btn-adicionar:hover { background-color: #5a5c2a; }
+      .btn-adicionar.adicionado {
+        background-color: #4caf50;
+        font-size: 16px;
+        cursor: default;
+      }
+
+      /* ── MENU ESTANTE ── */
+      .menu-estante {
+        position: absolute;
+        right: 60px;
+        top: 16px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        padding: 8px 0;
+        z-index: 100;
+        min-width: 160px;
+        display: none;
+      }
+      .menu-estante.aberto { display: block; }
+      .menu-estante-titulo {
+        font-size: 11px;
+        font-weight: 700;
+        color: #a6a6a6;
+        padding: 6px 16px;
+        letter-spacing: 1px;
+      }
+      .menu-opcao {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 16px;
+        cursor: pointer;
+        font-size: 13px;
+        color: #2c2c2c;
+        font-family: 'Quicksand';
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+        transition: background 0.2s;
+      }
+      .menu-opcao:hover { background-color: #f5f0e8; }
+      /* NOVO: opção já adicionada */
+      .menu-opcao.ja-adicionado {
+        color: #a6a6a6;
+        cursor: default;
+      }
+      .menu-opcao.ja-adicionado:hover { background: none; }
+
+      /* ── PAGINAÇÃO ── */
+      .paginacao {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 16px;
+        margin-top: 24px;
+        padding-bottom: 20px;
+      }
+      .btn-pagina {
+        padding: 8px 20px;
+        border-radius: 20px;
+        border: none;
+        background-color: #bbbd63;
+        color: white;
+        font-family: 'Quicksand';
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .btn-pagina:disabled {
+        background-color: #ede9d3;
+        color: #a6a6a6;
+        cursor: not-allowed;
+      }
+      .pagina-info { font-size: 13px; color: #6a6a6a; }
+
+      /* ── TOAST ── */
+      .toast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #701d1c;
+        color: white;
+        padding: 12px 28px;
+        border-radius: 30px;
+        font-size: 14px;
+        font-family: 'Quicksand';
+        font-weight: 700;
+        opacity: 0;
+        transition: opacity 0.3s;
+        z-index: 999;
+        pointer-events: none;
+      }
+      .toast.visivel { opacity: 1; }
+
+      /* ── MENSAGEM VAZIA ── */
+      .msg-vazia {
+        text-align: center;
+        color: #a6a6a6;
+        font-size: 14px;
+        margin-top: 40px;
+        display: none;
+      }
+    </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="barra-lateral">
+    <div class="container-nome-sistema">
+      <h1>
+        <span>book</span><br>
+        <span>match</span>
+      </h1>
+    </div>
+
+    <span class="rotulo-nav">PRINCIPAL</span>
+    <a class="item-nav" href="estante.html">📚 Minha Estante</a>
+    <a class="item-nav ativo" href="adicionarlivro.html">🔍 Adicionar Livro</a>
+    <a class="item-nav" href="descobrir.html">🔍 Descobrir Livros</a>
+    <a class="item-nav" href="curtidas.html"> 💕 Curtidas</a>
+    <a class="item-nav" href="mensagens.html">💬 Mensagens <span class="notificacao">3</span></a>
+    <a class="item-nav" href="configuracao.html">⚙️ Configurações</a>
+
+    <span class="rotulo-nav">ESTANTES</span>
+    <a class="item-nav" href="matches.html">❤️ Matches</a>
+    <a class="item-nav" href="troca.html">✅ Trocas</a>
+    <a class="item-nav" href="queroler.html">🛒 Quero ler</a>
+  </aside>
+
+  <!-- CONTEÚDO -->
+  <div class="conteudo">
+    <div class="page-title">Adicionar Livro à estante</div>
+
+    <div class="busca-wrap">
+      <input class="busca-input" type="text" id="campoBusca" placeholder="Digite o título ou autor...">
+    </div>
+
+    <div class="loading" id="loading">🔍 Buscando livros...</div>
+    <div class="msg-vazia" id="msgVazia">Nenhum livro encontrado. Tente outro termo.</div>
+    <div id="listaLivros"></div>
+
+    <div class="paginacao" id="paginacao" style="display:none;">
+      <button class="btn-pagina" id="btnAnterior" onclick="mudarPagina(-1)">← Anterior</button>
+      <span class="pagina-info" id="infoPagina">Página 1</span>
+      <button class="btn-pagina" id="btnProxima" onclick="mudarPagina(1)">Próxima →</button>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    let paginaAtual = 1;
+    const porPagina = 6;
+    let termoBusca = '';
+    let timerBusca = null;
+    let menuAberto = null;
+
+    /* ════════════════════════════════════════
+       NOVO — helpers de localStorage
+    ════════════════════════════════════════ */
+    const CHAVE_QUERO_LER = 'bm_queroler';
+    const CHAVE_TROCA     = 'bm_troca';
+
+    function lerEstante(chave) {
+      try { return JSON.parse(localStorage.getItem(chave)) || []; }
+      catch { return []; }
+    }
+
+    function salvarNaEstante(chave, dadosLivro) {
+      const lista = lerEstante(chave);
+      if (!lista.some(l => l.titulo === dadosLivro.titulo)) {
+        lista.push(dadosLivro);
+        localStorage.setItem(chave, JSON.stringify(lista));
+      }
+    }
+
+    function jaAdicionado(titulo, chave) {
+      return lerEstante(chave).some(l => l.titulo === titulo);
+    }
+    /* ════════════════════════════════════════ */
+
+    const traducaoGeneros = {
+      'Fiction': 'Ficção',
+      'Fantasy': 'Fantasia',
+      'Fantasy fiction': 'Fantasia',
+      'Romance': 'Romance',
+      'Horror': 'Terror',
+      'Horror fiction': 'Terror',
+      'Science fiction': 'Ficção Científica',
+      'Science Fiction': 'Ficção Científica',
+      'Mystery': 'Mistério',
+      'Mystery fiction': 'Mistério',
+      'Thriller': 'Suspense',
+      'Adventure': 'Aventura',
+      'Adventure fiction': 'Aventura',
+      'Historical fiction': 'Ficção Histórica',
+      'Biography': 'Biografia',
+      'Autobiography': 'Autobiografia',
+      'Self-help': 'Autoajuda',
+      'Poetry': 'Poesia',
+      'Drama': 'Drama',
+      'Comics': 'HQ',
+      'Manga': 'Mangá',
+      'Children': 'Infantil',
+      'Juvenile fiction': 'Infantil',
+      'Young adult fiction': 'Jovem Adulto',
+      'Nonfiction': 'Não-Ficção',
+      'Non-fiction': 'Não-Ficção',
+      'Classic': 'Clássico',
+      'Classics': 'Clássicos',
+      'Philosophy': 'Filosofia',
+      'Psychology': 'Psicologia',
+      'History': 'História',
+      'Science': 'Ciência',
+      'Religion': 'Religião',
+      'Spirituality': 'Espiritualidade',
+    };
+
+    function ehGeneroValido(subject) {
+      const prefixosInvalidos = ['nyt:', 'award:', 'lib:', 'goodreads:', 'opds:'];
+      return !prefixosInvalidos.some(p => subject.toLowerCase().startsWith(p));
+    }
+
+    function traduzirGenero(genero) {
+      if (!genero) return '—';
+      if (traducaoGeneros[genero]) return traducaoGeneros[genero];
+      const chave = Object.keys(traducaoGeneros).find(
+        k => k.toLowerCase() === genero.toLowerCase()
+      );
+      if (chave) return traducaoGeneros[chave];
+      return genero;
+    }
+
+    document.getElementById('campoBusca').addEventListener('input', function() {
+      const termo = this.value.trim();
+      clearTimeout(timerBusca);
+
+      if (termo.length < 3) {
+        document.getElementById('listaLivros').innerHTML = '';
+        document.getElementById('paginacao').style.display = 'none';
+        document.getElementById('msgVazia').style.display = 'none';
+        return;
+      }
+
+      timerBusca = setTimeout(() => {
+        termoBusca = termo;
+        paginaAtual = 1;
+        buscarLivros();
+      }, 500);
+    });
+
+    async function buscarLivros() {
+      const loading   = document.getElementById('loading');
+      const lista     = document.getElementById('listaLivros');
+      const msgVazia  = document.getElementById('msgVazia');
+      const paginacao = document.getElementById('paginacao');
+
+      loading.style.display = 'block';
+      lista.innerHTML = '';
+      msgVazia.style.display = 'none';
+      paginacao.style.display = 'none';
+
+      const offset = (paginaAtual - 1) * porPagina;
+      const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(termoBusca)}&limit=${porPagina}&offset=${offset}`;
+
+      try {
+        const resposta = await fetch(url);
+        const dados = await resposta.json();
+
+        loading.style.display = 'none';
+
+        if (!dados.docs || dados.docs.length === 0) {
+          msgVazia.style.display = 'block';
+          return;
+        }
+
+        const totalPaginas = Math.ceil(Math.min(dados.numFound, 60) / porPagina);
+        document.getElementById('infoPagina').textContent = `Página ${paginaAtual} de ${totalPaginas}`;
+        document.getElementById('btnAnterior').disabled = paginaAtual === 1;
+        document.getElementById('btnProxima').disabled  = paginaAtual >= totalPaginas;
+        paginacao.style.display = 'flex';
+
+        // ── busca detalhes do work em paralelo para cada livro (original mantido) ──
+        const promises = dados.docs.map(async (livro, index) => {
+          const titulo  = livro.title || 'Título desconhecido';
+          const autor   = livro.author_name ? livro.author_name[0] : 'Autor desconhecido';
+          const ano     = livro.first_publish_year || '—';
+          const capaId  = livro.cover_i;
+          const capaUrl = capaId
+            ? `https://covers.openlibrary.org/b/id/${capaId}-M.jpg`
+            : '';
+
+          let genero    = '—';
+          let descricao = 'Sem descrição disponível.';
+
+          if (livro.key) {
+            try {
+              const resWork = await fetch(`https://openlibrary.org${livro.key}.json`);
+              const work = await resWork.json();
+
+              if (work.description) {
+                descricao = typeof work.description === 'object'
+                  ? work.description.value
+                  : work.description;
+                if (descricao.length > 180) descricao = descricao.slice(0, 180) + '...';
+              }
+
+              if (work.subjects && work.subjects.length > 0) {
+                const subjectsValidos = work.subjects.filter(ehGeneroValido);
+                const match = subjectsValidos.find(s =>
+                  Object.keys(traducaoGeneros).some(k => k.toLowerCase() === s.toLowerCase())
+                );
+                genero = traduzirGenero(match || subjectsValidos[0] || work.subjects[0]);
+              }
+
+            } catch (_) { /* mantém valores padrão */ }
+          }
+
+          // NOVO: objeto completo para persistir no localStorage
+          const dadosLivro = { titulo, autor, genero, ano, capaUrl, cor: '#c0b090', status: 'disponivel' };
+
+          // NOVO: checa se já foi adicionado a cada estante (para refletir estado ao paginar)
+          const emQL = jaAdicionado(titulo, CHAVE_QUERO_LER);
+          const emTR = jaAdicionado(titulo, CHAVE_TROCA);
+
+          const cardId = `card-${index}`;
+          const card = document.createElement('div');
+          card.className = 'livro-card';
+          card.id = cardId;
+          card.dataset.livro = JSON.stringify(dadosLivro); // NOVO
+
+          card.innerHTML = `
+            ${capaUrl
+              ? `<img class="livro-capa" src="${capaUrl}" alt="Capa de ${titulo}">`
+              : `<div class="livro-capa"></div>`
+            }
+            <div class="livro-info">
+              <div class="livro-titulo">${titulo}</div>
+              <div class="livro-autor">${autor} · ${ano}</div>
+              <div class="tags-row">
+                <span class="tag">${genero}</span>
+                <span class="tag">${ano}</span>
+              </div>
+              <div class="livro-desc">${descricao}</div>
+            </div>
+            <button
+              class="btn-adicionar${(emQL && emTR) ? ' adicionado' : ''}"
+              id="btn-${cardId}"
+              onclick="abrirMenu('${cardId}')"
+              ${(emQL && emTR) ? 'disabled title="Já adicionado a todas as estantes"' : ''}>
+              ${(emQL && emTR) ? '✓' : '+'}
+            </button>
+            <div class="menu-estante" id="menu-${cardId}">
+              <div class="menu-estante-titulo">ADICIONAR À...</div>
+              <button
+                class="menu-opcao${emQL ? ' ja-adicionado' : ''}"
+                id="opcao-ql-${cardId}"
+                onclick="${emQL ? 'void(0)' : `adicionarLivro('${cardId}', 'queroler')`}">
+                📚 Quero Ler${emQL ? ' ✓' : ''}
+              </button>
+              <button
+                class="menu-opcao${emTR ? ' ja-adicionado' : ''}"
+                id="opcao-tr-${cardId}"
+                onclick="${emTR ? 'void(0)' : `adicionarLivro('${cardId}', 'troca')`}">
+                🔄 Troca${emTR ? ' ✓' : ''}
+              </button>
+            </div>
+          `;
+
+          lista.appendChild(card);
+        });
+
+        await Promise.all(promises);
+
+      } catch (erro) {
+        loading.style.display = 'none';
+        lista.innerHTML = '<p style="color:#a6a6a6;text-align:center;margin-top:20px;">Erro ao buscar livros. Verifique sua conexão.</p>';
+      }
+    }
+
+    function mudarPagina(direcao) {
+      paginaAtual += direcao;
+      buscarLivros();
+      document.querySelector('.conteudo').scrollTop = 0;
+    }
+
+    function abrirMenu(cardId) {
+      if (menuAberto && menuAberto !== `menu-${cardId}`) {
+        document.getElementById(menuAberto).classList.remove('aberto');
+      }
+      const menu = document.getElementById(`menu-${cardId}`);
+      menu.classList.toggle('aberto');
+      menuAberto = menu.classList.contains('aberto') ? `menu-${cardId}` : null;
+    }
+
+    /* ════════════════════════════════════════
+       NOVO — substitui a função adicionarLivro original
+       (que só mostrava toast) por uma que também persiste
+    ════════════════════════════════════════ */
+    function adicionarLivro(cardId, estante) {
+      const card      = document.getElementById(cardId);
+      const dados     = JSON.parse(card.dataset.livro);
+      const chave     = estante === 'queroler' ? CHAVE_QUERO_LER : CHAVE_TROCA;
+      const nomeLabel = estante === 'queroler' ? 'Quero Ler' : 'Troca';
+      const opcaoId   = estante === 'queroler' ? `opcao-ql-${cardId}` : `opcao-tr-${cardId}`;
+      const emoji     = estante === 'queroler' ? '📚' : '🔄';
+
+      if (jaAdicionado(dados.titulo, chave)) return;
+
+      // persiste no localStorage
+      salvarNaEstante(chave, dados);
+
+      // atualiza visual da opção
+      const opcao = document.getElementById(opcaoId);
+      opcao.classList.add('ja-adicionado');
+      opcao.setAttribute('onclick', 'void(0)');
+      opcao.textContent = `${emoji} ${nomeLabel} ✓`;
+
+      // se ambas adicionadas, muda botão + para ✓ verde
+      const emQL = jaAdicionado(dados.titulo, CHAVE_QUERO_LER);
+      const emTR = jaAdicionado(dados.titulo, CHAVE_TROCA);
+      if (emQL && emTR) {
+        const btn = document.getElementById(`btn-${cardId}`);
+        btn.classList.add('adicionado');
+        btn.disabled = true;
+        btn.title = 'Já adicionado a todas as estantes';
+        btn.textContent = '✓';
+      }
+
+      // fecha menu
+      if (menuAberto) {
+        document.getElementById(menuAberto).classList.remove('aberto');
+        menuAberto = null;
+      }
+
+      mostrarToast(`✅ "${dados.titulo}" adicionado à estante ${nomeLabel}!`);
+    }
+
+    function mostrarToast(mensagem) {
+      const toast = document.getElementById('toast');
+      toast.textContent = mensagem;
+      toast.classList.add('visivel');
+      setTimeout(() => toast.classList.remove('visivel'), 3000);
+    }
+
+    document.addEventListener('click', function(e) {
+      if (menuAberto && !e.target.closest('.livro-card')) {
+        document.getElementById(menuAberto).classList.remove('aberto');
+        menuAberto = null;
+      }
+    });
+  </script>
+
+</body>
+</html>

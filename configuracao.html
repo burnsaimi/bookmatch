@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BookMatch – Configurações</title>
+  <style>
+    @font-face { font-family: 'Radiant Charisma'; src: url('fonts/RadiantCharismaDEMO-Medium.ttf') format('truetype'); }
+    @font-face { font-family: 'Quicksand'; src: url('fonts/Quicksand-Bold.ttf') format('truetype'); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { height: 100vh; display: flex; font-family: 'Quicksand', sans-serif; background-color: #fffdf3; overflow: hidden; }
+
+    /* ── SIDEBAR ── */
+    .barra-lateral { width: 280px; min-width: 280px; background-color: #701d1c; display: flex; flex-direction: column; padding: 50px 0; position: relative; overflow: hidden; z-index: 1; }
+    .barra-lateral::before { content: ''; position: absolute; bottom: -80px; left: -80px; width: 300px; height: 300px; background: rgba(173,114,114,0.22); border-radius: 45% 55% 40% 60%; pointer-events: none; }
+    .barra-lateral::after { content: ''; position: absolute; top: -40px; right: -40px; width: 180px; height: 180px; background: rgba(173,114,114,0.22); border-radius: 60% 40% 55% 45%; pointer-events: none; }
+    .container-nome-sistema { padding: 0 30px 50px; z-index: 2; }
+    .container-nome-sistema h1 { font-family: 'Radiant Charisma'; font-size: 36px; line-height: 0.9; }
+    .container-nome-sistema h1 span:first-child { color: #bcb24d; }
+    .container-nome-sistema h1 span:last-child  { color: #e6a921; }
+    .rotulo-nav { font-size: 10px; letter-spacing: 1.5px; color: rgba(255,255,255,0.5); padding: 20px 30px 10px; z-index: 2; font-weight: bold; }
+    .item-nav { display: flex; align-items: center; gap: 12px; padding: 12px 30px; color: #fff; font-size: 14px; cursor: pointer; transition: 0.3s; z-index: 2; text-decoration: none; }
+    .item-nav:hover { background: rgba(255,255,255,0.1); }
+    .item-nav.ativo { background: rgba(255,255,255,0.15); font-weight: bold; border-left: 4px solid #e6a921; }
+    .notificacao { margin-left: auto; background: #e4568b; color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 10px; }
+
+    /* ── CONTEÚDO ── */
+    .conteudo { flex: 1; padding: 40px; overflow-y: auto; background-color: #fffdf3; }
+
+    .topo { margin-bottom: 6px; }
+    .topo h2 { font-family: 'Radiant Charisma'; font-size: 42px; color: #701d1c; }
+    .topo-sub { font-size: 13px; color: #a6a6a6; margin-bottom: 24px; }
+
+    /* ── ABAS ── */
+    .abas { display: flex; gap: 8px; margin-bottom: 28px; }
+    .aba { padding: 8px 24px; border-radius: 20px; border: none; font-family: 'Quicksand'; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    .aba.ativa { background: #701d1c; color: #fff; }
+    .aba.inativa { background: #ede9d3; color: #a6a6a6; }
+    .aba.inativa:hover { background: #e0dbc8; }
+
+    /* ── SEÇÕES ── */
+    .secao { display: none; }
+    .secao.ativa { display: block; }
+
+    /* ── CARD BASE ── */
+    .card { background: #ede9d3; border-radius: 18px; padding: 24px 28px; margin-bottom: 20px; }
+
+    /* ── PERFIL ── */
+    .perfil-topo { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+    .avatar-perfil { width: 56px; height: 56px; border-radius: 50%; background: #e6a921; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
+    .perfil-nome { font-size: 18px; font-weight: bold; color: #2c2c2c; }
+    .perfil-sub { font-size: 12px; color: #a6a6a6; margin-top: 2px; }
+    .btn-editar { margin-left: auto; padding: 8px 18px; border-radius: 20px; border: 1.5px solid #a6a6a6; background: transparent; font-family: 'Quicksand'; font-size: 12px; font-weight: bold; color: #a6a6a6; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
+    .btn-editar:hover { border-color: #701d1c; color: #701d1c; }
+
+    /* ── GRID PRIVACIDADE / DESCOBERTA ── */
+    .grid-config { display: grid; grid-template-columns: 1fr 1px 1fr; gap: 0; }
+    .col-config { padding: 0 28px; }
+    .col-config:first-child { padding-left: 0; }
+    .col-config:last-child { padding-right: 0; }
+    .divisor-vertical { background: #d4cdb8; }
+    .col-titulo { font-size: 14px; font-weight: bold; color: #701d1c; text-align: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1.5px solid #d4cdb8; }
+
+    /* ── LINHA DE TOGGLE ── */
+    .linha-toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+    .toggle-label { font-size: 13px; font-weight: bold; color: #2c2c2c; }
+    .toggle-sub { font-size: 11px; color: #a6a6a6; margin-top: 2px; }
+    .toggle-wrap { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+    .toggle-wrap input { opacity: 0; width: 0; height: 0; }
+    .toggle-track { position: absolute; inset: 0; border-radius: 12px; background: #c0b090; cursor: pointer; transition: background 0.2s; }
+    .toggle-wrap input:checked + .toggle-track { background: #e6a921; }
+    .toggle-thumb { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: left 0.2s; pointer-events: none; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+    .toggle-wrap input:checked ~ .toggle-thumb { left: 23px; }
+
+    /* ── LINHA DE SELECT ── */
+    .linha-select { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .select-label { font-size: 13px; font-weight: bold; color: #2c2c2c; }
+    .select-config { padding: 6px 12px; border-radius: 20px; border: 1.5px solid #c0b090; background: #fffdf3; font-family: 'Quicksand'; font-size: 12px; font-weight: bold; color: #2c2c2c; cursor: pointer; appearance: none; padding-right: 28px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23a6a6a6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
+
+    /* ── TAGS DE GÊNEROS ── */
+    .generos-titulo { font-size: 13px; font-weight: bold; color: #2c2c2c; margin-bottom: 12px; }
+    .generos-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .tag-genero { padding: 5px 14px; border-radius: 20px; background: #e6a921; color: #fff; font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    .tag-genero:hover { background: #c8851a; }
+
+    /* ── CARD CONTA E SEGURANÇA ── */
+    .conta-header { display: flex; align-items: center; gap: 14px; padding-bottom: 20px; margin-bottom: 4px; border-bottom: 1.5px solid #d4cdb8; }
+    .conta-icone { width: 44px; height: 44px; border-radius: 12px; background: #e6a921; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+    .conta-titulo { font-size: 16px; font-weight: bold; color: #2c2c2c; }
+    .conta-sub { font-size: 12px; color: #a6a6a6; margin-top: 2px; }
+
+    .linha-conta { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid #d4cdb8; }
+    .linha-conta:last-of-type { border-bottom: none; }
+    .conta-item-nome { font-size: 14px; font-weight: bold; color: #2c2c2c; }
+    .conta-item-nome.perigo { color: #b33a3a; }
+    .conta-item-desc { font-size: 12px; color: #a6a6a6; margin-top: 2px; }
+
+    .btn-acao { padding: 8px 22px; border-radius: 20px; border: 1.5px solid #a6a6a6; background: transparent; font-family: 'Quicksand'; font-size: 13px; font-weight: bold; color: #2c2c2c; cursor: pointer; transition: 0.2s; }
+    .btn-acao:hover { border-color: #701d1c; color: #701d1c; }
+    .btn-acao.perigo { border-color: #b33a3a; color: #b33a3a; }
+    .btn-acao.perigo:hover { background: #b33a3a; color: #fff; }
+
+    .linha-sair { display: flex; justify-content: flex-end; padding-top: 16px; }
+    .btn-sair { background: transparent; border: none; font-family: 'Quicksand'; font-size: 14px; font-weight: bold; color: #b33a3a; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: opacity 0.2s; }
+    .btn-sair:hover { opacity: 0.7; }
+
+    /* TOAST */
+    .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background-color: #701d1c; color: white; padding: 12px 28px; border-radius: 30px; font-size: 14px; font-family: 'Quicksand'; font-weight: 700; opacity: 0; transition: opacity 0.3s; z-index: 999; pointer-events: none; }
+    .toast.visivel { opacity: 1; }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="barra-lateral">
+    <div class="container-nome-sistema">
+      <h1><span>book</span><br><span>match</span></h1>
+    </div>
+
+    <span class="rotulo-nav">PRINCIPAL</span>
+    <a class="item-nav" href="estante.html">📚 Minha Estante</a>
+    <a class="item-nav" href="descobrir.html">🔍 Descobrir Livros</a>
+    <a class="item-nav" href="curtidas.html">💕 Curtidas</a>
+    <a class="item-nav" href="mensagens.html">💬 Mensagens <span class="notificacao">3</span></a>
+    <a class="item-nav ativo" href="configuracao.html">⚙️ Configurações</a>
+
+    <span class="rotulo-nav">SUAS LISTAS</span>
+    <a class="item-nav" href="matches.html">❤️ Matches</a>
+    <a class="item-nav" href="troca.html">✅ Trocas</a>
+    <a class="item-nav" href="queroler.html">🛒 Quero ler</a>
+  </aside>
+
+  <!-- CONTEÚDO -->
+  <div class="conteudo">
+    <div class="topo">
+      <h2>Configurações</h2>
+      <p class="topo-sub">Gerência sua conta e preferências</p>
+    </div>
+
+    <!-- ABAS -->
+    <div class="abas">
+      <button class="aba ativa"   onclick="trocarAba('preferencias', this)">Preferências</button>
+      <button class="aba inativa" onclick="trocarAba('conta', this)">Conta e segurança</button>
+    </div>
+
+    <!-- ─── ABA: PREFERÊNCIAS ─── -->
+    <div class="secao ativa" id="secao-preferencias">
+
+      <!-- Card de perfil -->
+      <div class="card">
+        <div class="perfil-topo">
+          <div class="avatar-perfil">👤</div>
+          <div>
+            <div class="perfil-nome">Luis Henrique</div>
+            <div class="perfil-sub">Frederico Westphalen, RS &nbsp;·&nbsp; 38 livros &nbsp;·&nbsp; ⭐ 5,0</div>
+          </div>
+          <button class="btn-editar" onclick="mostrarToast('✏️ Abrindo editor de perfil…')">✏️ Editar perfil</button>
+        </div>
+
+        <div class="grid-config">
+          <!-- Coluna Privacidade -->
+          <div class="col-config">
+            <div class="col-titulo">Privacidade</div>
+
+            <div class="linha-toggle">
+              <div>
+                <div class="toggle-label">Estante pública</div>
+                <div class="toggle-sub">Outros usuários podem ver seus livros</div>
+              </div>
+              <label class="toggle-wrap">
+                <input type="checkbox" checked onchange="salvarToggle('estante', this.checked)">
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </label>
+            </div>
+
+            <div class="linha-toggle">
+              <div>
+                <div class="toggle-label">Mostrar localização</div>
+                <div class="toggle-sub">Exibe a sua cidade no perfil</div>
+              </div>
+              <label class="toggle-wrap">
+                <input type="checkbox" checked onchange="salvarToggle('localizacao', this.checked)">
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </label>
+            </div>
+
+            <div class="linha-toggle">
+              <div>
+                <div class="toggle-label">Mostrar avaliação</div>
+                <div class="toggle-sub">Exibe a sua nota média de leitor</div>
+              </div>
+              <label class="toggle-wrap">
+                <input type="checkbox" onchange="salvarToggle('avaliacao', this.checked)">
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </label>
+            </div>
+
+            <div class="linha-toggle">
+              <div>
+                <div class="toggle-label">Mostrar n.º de livros</div>
+                <div class="toggle-sub">Exibe a quantidade da sua estante</div>
+              </div>
+              <label class="toggle-wrap">
+                <input type="checkbox" onchange="salvarToggle('livros', this.checked)">
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Divisor -->
+          <div class="divisor-vertical"></div>
+
+          <!-- Coluna Descoberta -->
+          <div class="col-config">
+            <div class="col-titulo">Descoberta</div>
+
+            <div class="linha-select">
+              <span class="select-label">Ordenar por</span>
+              <select class="select-config" onchange="mostrarToast('✅ Preferência salva!')">
+                <option>Compatibilidade</option>
+                <option>Distância</option>
+                <option>Avaliação</option>
+                <option>Livros em comum</option>
+              </select>
+            </div>
+
+            <div class="linha-select">
+              <span class="select-label">Distância máxima</span>
+              <select class="select-config" onchange="mostrarToast('✅ Preferência salva!')">
+                <option>Todo o Brasil</option>
+                <option>50 km</option>
+                <option>100 km</option>
+                <option>200 km</option>
+                <option>500 km</option>
+              </select>
+            </div>
+
+            <div class="generos-titulo">Gêneros de interesse</div>
+            <div class="generos-row" id="generos-row"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── ABA: CONTA E SEGURANÇA ─── -->
+    <div class="secao" id="secao-conta">
+      <div class="card">
+
+        <div class="conta-header">
+          <div class="conta-icone">🔒</div>
+          <div>
+            <div class="conta-titulo">Conta e segurança</div>
+            <div class="conta-sub">Senha, dados e privacidade</div>
+          </div>
+        </div>
+
+        <div class="linha-conta">
+          <div>
+            <div class="conta-item-nome">Alterar senha</div>
+            <div class="conta-item-desc">Última alteração há 3 meses</div>
+          </div>
+          <button class="btn-acao" onclick="mostrarToast('🔑 Abrindo redefinição de senha…')">Alterar</button>
+        </div>
+
+        <div class="linha-conta">
+          <div>
+            <div class="conta-item-nome">Exportar meus dados</div>
+            <div class="conta-item-desc">Baixe toda sua estante em CSV</div>
+          </div>
+          <button class="btn-acao" onclick="mostrarToast('📥 Exportação iniciada!')">Exportar</button>
+        </div>
+
+        <div class="linha-conta">
+          <div>
+            <div class="conta-item-nome">Pausar conta</div>
+            <div class="conta-item-desc">Você não aparece nas descobertas</div>
+          </div>
+          <button class="btn-acao" onclick="mostrarToast('⏸️ Conta pausada.')">Pausar</button>
+        </div>
+
+        <div class="linha-conta">
+          <div>
+            <div class="conta-item-nome perigo">Excluir conta</div>
+            <div class="conta-item-desc">Ação irreversível — todos os dados serão apagados</div>
+          </div>
+          <button class="btn-acao perigo" onclick="confirmarExclusao()">Excluir conta</button>
+        </div>
+
+        <div class="linha-sair">
+          <button class="btn-sair" onclick="mostrarToast('👋 Até logo!')">Sair 🚪</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    /* ── Gêneros ── */
+    const todosGeneros = ['HQ/Mangás','Fantasia','Ficção Científica','Terror','Suspense','Autoajuda','Clássicos','Romance','Aventura','Biografia'];
+    const generosAtivos = new Set(['HQ/Mangás','Fantasia','Ficção Científica','Terror','Suspense','Autoajuda','Clássicos']);
+
+    function renderGeneros() {
+      document.getElementById('generos-row').innerHTML = todosGeneros.map(g => {
+        const ativo = generosAtivos.has(g);
+        return `<span class="tag-genero" style="${ativo ? '' : 'background:#c0b090;'}" onclick="toggleGenero('${g}', this)">${g}</span>`;
+      }).join('');
+    }
+
+    function toggleGenero(g, el) {
+      if (generosAtivos.has(g)) {
+        generosAtivos.delete(g);
+        el.style.background = '#c0b090';
+        mostrarToast(`➖ ${g} removido`);
+      } else {
+        generosAtivos.add(g);
+        el.style.background = '#e6a921';
+        mostrarToast(`➕ ${g} adicionado`);
+      }
+    }
+
+    renderGeneros();
+
+    /* ── Abas ── */
+    function trocarAba(id, btn) {
+      document.querySelectorAll('.secao').forEach(s => s.classList.remove('ativa'));
+      document.querySelectorAll('.aba').forEach(b => { b.classList.remove('ativa'); b.classList.add('inativa'); });
+      document.getElementById('secao-' + id).classList.add('ativa');
+      btn.classList.add('ativa');
+      btn.classList.remove('inativa');
+    }
+
+    /* ── Toggles ── */
+    function salvarToggle(campo, valor) {
+      mostrarToast(`✅ ${campo.charAt(0).toUpperCase() + campo.slice(1)} ${valor ? 'ativado' : 'desativado'}`);
+    }
+
+    /* ── Excluir conta ── */
+    function confirmarExclusao() {
+      if (confirm('Tem certeza? Esta ação é irreversível e todos os seus dados serão apagados.')) {
+        mostrarToast('🗑️ Conta excluída.');
+      }
+    }
+
+    /* ── Toast ── */
+    function mostrarToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('visivel');
+      setTimeout(() => t.classList.remove('visivel'), 3000);
+    }
+  </script>
+</body>
+</html>

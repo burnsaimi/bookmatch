@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BookMatch – Matches</title>
+  <style>
+    @font-face { font-family: 'Radiant Charisma'; src: url('fonts/RadiantCharismaDEMO-Medium.ttf') format('truetype'); }
+    @font-face { font-family: 'Quicksand'; src: url('fonts/Quicksand-Bold.ttf') format('truetype'); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { height: 100vh; display: flex; font-family: 'Quicksand', sans-serif; background-color: #fffdf3; overflow: hidden; }
+
+    .barra-lateral {
+      width: 280px; min-width: 280px; background-color: #701d1c;
+      display: flex; flex-direction: column; padding: 50px 0;
+      position: relative; overflow: hidden; z-index: 1;
+    }
+    .barra-lateral::before {
+      content: ''; position: absolute; bottom: -80px; left: -80px;
+      width: 300px; height: 300px; background: rgba(173,114,114,0.22);
+      border-radius: 45% 55% 40% 60%; pointer-events: none;
+    }
+    .barra-lateral::after {
+      content: ''; position: absolute; top: -40px; right: -40px;
+      width: 180px; height: 180px; background: rgba(173,114,114,0.22);
+      border-radius: 60% 40% 55% 45%; pointer-events: none;
+    }
+    .container-nome-sistema { padding: 0 30px 50px; z-index: 2; }
+    .container-nome-sistema h1 { font-family: 'Radiant Charisma'; font-size: 36px; line-height: 0.9; }
+    .container-nome-sistema h1 span:first-child { color: #bcb24d; }
+    .container-nome-sistema h1 span:last-child  { color: #e6a921; }
+    .rotulo-nav { font-size: 10px; letter-spacing: 1.5px; color: rgba(255,255,255,0.5); padding: 20px 30px 10px; z-index: 2; font-weight: bold; }
+    .item-nav { display: flex; align-items: center; gap: 12px; padding: 12px 30px; color: #fff; font-size: 14px; cursor: pointer; transition: 0.3s; z-index: 2; text-decoration: none; }
+    .item-nav:hover { background: rgba(255,255,255,0.1); }
+    .item-nav.ativo { background: rgba(255,255,255,0.15); font-weight: bold; border-left: 4px solid #e6a921; }
+    .notificacao { margin-left: auto; background: #e4568b; color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 10px; }
+
+    .conteudo { flex: 1; padding: 40px; overflow-y: auto; background-color: #fffdf3; }
+
+    .topo { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; }
+    .topo h2 { font-family: 'Radiant Charisma'; font-size: 42px; color: #701d1c; }
+    .badge-total { background: #701d1c; color: #fff; border-radius: 20px; padding: 6px 18px; font-size: 13px; font-weight: bold; }
+
+    .grade {
+      display: grid;
+        grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+
+    .card-livro {
+      background: #ede9d3;
+      border-radius: 16px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    }
+    .card-livro:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.13); }
+
+    .card-capa {
+      width: 100%;
+      aspect-ratio: 2/3;
+      object-fit: cover;
+      display: block;
+      background: #c0b090;
+    }
+    .card-capa-placeholder {
+      width: 100%;
+      aspect-ratio: 2/3;
+      background: #c0b090;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+    }
+
+    .card-info { padding: 12px 14px 14px; }
+    .card-titulo { font-family: 'Radiant Charisma'; font-size: 15px; color: #2c2c2c; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-autor  { font-size: 11px; color: #a6a6a6; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .card-match-row { display: flex; align-items: center; gap: 8px; }
+    .avatar { width: 24px; height: 24px; border-radius: 50%; background: #701d1c; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #e6a921; font-weight: bold; flex-shrink: 0; }
+    .match-nome { font-size: 11px; color: #701d1c; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .tag-match { display: inline-block; margin-top: 8px; background: #e4568b; color: #fff; font-size: 10px; font-weight: bold; padding: 3px 10px; border-radius: 10px; }
+  </style>
+</head>
+<body>
+  <aside class="barra-lateral">
+    <div class="container-nome-sistema">
+      <h1><span>book</span><br><span>match</span></h1>
+    </div>
+
+    <span class="rotulo-nav">PRINCIPAL</span>
+    <a class="item-nav" href="estante.html">📚 Minha Estante</a>
+    <a class="item-nav" href="descobrir.html">🔎 Descobrir Livros</a>
+    <a class="item-nav" href="curtidas.html"> 💕 Curtidas</a>
+    <a class="item-nav" href="mensagens.html">💬 Mensagens <span class="notificacao">3</span></a>
+    <a class="item-nav" href="configuracao.html">⚙️ Configurações</a>
+
+    <span class="rotulo-nav">SUAS LISTAS</span>
+    <a class="item-nav ativo" href="matches.html">❤️ Matches</a>
+    <a class="item-nav" href="troca.html">✅ Trocas</a>
+    <a class="item-nav" href="queroler.html">🛒 Quero Ler</a>
+  </aside>
+
+  <div class="conteudo">
+    <div class="topo">
+      <h2>Matches</h2>
+      <span class="badge-total">8 livros</span>
+    </div>
+
+    <div class="grade" id="grade"></div>
+  </div>
+
+  <script>
+    const livros = [
+      { titulo: "Assassin's Creed", autor: 'Oliver Bowden', cor: '#3a3a5e', capa: null, match: 'Mariana Costa' },
+      { titulo: 'Rangers', autor: 'John Flanagan', cor: '#4a6741', capa: null, match: 'Pedro Alves' },
+      { titulo: 'Sherlock Holmes', autor: 'Arthur Conan Doyle', cor: '#2c2c2c', capa: null, match: 'Julia Ramos' },
+      { titulo: 'Diário de um Banana', autor: 'Jeff Kinney', cor: '#c0392b', capa: null, match: 'Rafael Lima' },
+      { titulo: 'O Poder do Hábito', autor: 'Charles Duhigg', cor: '#e67e22', capa: null, match: 'Camila Souza' },
+      { titulo: 'Sapiens', autor: 'Yuval Noah Harari', cor: '#5d6d7e', capa: null, match: 'Thiago Martins' },
+      { titulo: 'A Bíblia Sagrada', autor: 'Diversos Autores', cor: '#1a1a2e', capa: null, match: 'Ana Ferreira' },
+      { titulo: 'Duna', autor: 'Frank Herbert', cor: '#6b4226', capa: null, match: 'Lucas Pereira' },
+    ];
+
+    const grade = document.getElementById('grade');
+    livros.forEach(l => {
+      const iniciais = l.match.split(' ').map(n => n[0]).join('').slice(0,2);
+      grade.innerHTML += `
+        <div class="card-livro">
+          <div class="card-capa-placeholder" style="background:${l.cor};">📖</div>
+          <div class="card-info">
+            <div class="card-titulo">${l.titulo}</div>
+            <div class="card-autor">${l.autor}</div>
+            <div class="card-match-row">
+              <div class="avatar">${iniciais}</div>
+              <span class="match-nome">${l.match}</span>
+            </div>
+            <span class="tag-match">❤️ Match</span>
+          </div>
+        </div>`;
+    });
+  </script>
+</body>
+</html>

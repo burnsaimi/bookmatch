@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BookMatch - Descobrir Livros</title>
+  <style>
+    @font-face {
+      font-family: 'Radiant Charisma';
+      src: url('fonts/RadiantCharismaDEMO-Medium.ttf') format('truetype');
+    }
+    @font-face {
+      font-family: 'Quicksand';
+      src: url('fonts/Quicksand-Bold.ttf') format('truetype');
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      display: flex;
+      height: 100vh;
+      font-family: 'Quicksand', sans-serif;
+      background-color: #fffdf3;
+      overflow: hidden;
+    }
+
+    /* ── SIDEBAR (padrão do projeto) ── */
+    .barra-lateral {
+      width: 280px;
+      min-width: 280px;
+      background-color: #701d1c;
+      display: flex;
+      flex-direction: column;
+      padding: 50px 0;
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+    }
+    .barra-lateral::before {
+      content: '';
+      position: absolute;
+      bottom: -80px; left: -80px;
+      width: 300px; height: 300px;
+      background: rgba(173, 114, 114, 0.22);
+      border-radius: 45% 55% 40% 60%;
+      pointer-events: none;
+    }
+    .barra-lateral::after {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 180px; height: 180px;
+      background: rgba(173, 114, 114, 0.22);
+      border-radius: 60% 40% 55% 45%;
+      pointer-events: none;
+    }
+    .container-nome-sistema {
+      padding: 0 30px 50px;
+      z-index: 2;
+    }
+    .container-nome-sistema h1 {
+      font-family: 'Radiant Charisma';
+      font-size: 36px;
+      line-height: 0.9;
+    }
+    .container-nome-sistema h1 span:first-child { color: #bcb24d; }
+    .container-nome-sistema h1 span:last-child  { color: #e6a921; }
+    .rotulo-nav {
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      color: rgba(255,255,255,0.5);
+      padding: 20px 30px 10px;
+      z-index: 2;
+      font-weight: bold;
+    }
+    .item-nav {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 30px;
+      color: #ffffff;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.3s;
+      z-index: 2;
+      text-decoration: none;
+    }
+    .item-nav:hover { background: rgba(255,255,255,0.1); }
+    .item-nav.ativo {
+      background: rgba(255,255,255,0.15);
+      font-weight: bold;
+      border-left: 4px solid #e6a921;
+    }
+    .notificacao {
+      margin-left: auto;
+      background: #e4568b;
+      color: #fff;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    /* ── ÁREA PRINCIPAL ── */
+    .conteudo {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background-color: #fffdf3;
+      position: relative;
+    }
+    .page-title {
+      font-family: 'Radiant Charisma';
+      font-size: 36px;
+      color: #2c2c2c;
+      margin-bottom: 20px;
+      position: absolute;
+      top: 28px;
+    }
+
+    /* ── STACK DE CARDS ── */
+    .card-stack {
+      position: relative;
+      width: 400px;
+      height: 450px;
+    }
+    /* ── CARD PRINCIPAL ── */
+    .livro-card {
+      position: absolute;
+      width: 400px;
+      background: #ede9d3;
+      border-radius: 20px;
+      overflow: hidden;
+      z-index: 10;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+      transition: transform 0.08s ease;
+      cursor: grab;
+      user-select: none;
+      top: 0;
+    }
+    .livro-card:active { cursor: grabbing; }
+    .livro-card.swipe-left  { animation: sairEsquerda 0.4s ease forwards; }
+    .livro-card.swipe-right { animation: sairDireita  0.4s ease forwards; }
+    @keyframes sairEsquerda { to { transform: translateX(-140%) rotate(-20deg); opacity: 0; } }
+    @keyframes sairDireita  { to { transform: translateX( 140%) rotate( 20deg); opacity: 0; } }
+
+    .swipe-overlay {
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      border-radius: 20px; z-index: 20;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Radiant Charisma'; font-size: 52px;
+      opacity: 0; pointer-events: none; transition: opacity 0.15s;
+    }
+    .swipe-overlay.like { background: rgba(110,190,110,0.25); color: #2e7d32; }
+    .swipe-overlay.nope { background: rgba(220, 80, 80,0.25); color: #c62828; }
+
+    /* ── CARROSSEL ── */
+    .fotos-container {
+      position: relative; width: 100%; height: 240px;
+      background: #c0b090; overflow: hidden;
+    }
+    .fotos-slider { display: flex; height: 100%; transition: transform 0.35s ease; }
+    .foto-slide { min-width: 100%; height: 100%; object-fit: cover; flex-shrink: 0; }
+    .foto-slide.placeholder {
+      display: flex; align-items: center; justify-content: center;
+      background: #c0b090; font-size: 64px;
+    }
+    .foto-dots {
+      position: absolute; bottom: 10px; left: 50%;
+      transform: translateX(-50%); display: flex; gap: 5px; z-index: 5;
+    }
+    .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: rgba(255,255,255,0.5);
+      transition: background 0.2s, transform 0.2s;
+    }
+    .dot.ativo { background: white; transform: scale(1.3); }
+    .seta-foto {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      background: rgba(0,0,0,0.3); color: white; border: none;
+      border-radius: 50%; width: 30px; height: 30px; font-size: 14px;
+      cursor: pointer; z-index: 5; display: flex; align-items: center;
+      justify-content: center; transition: background 0.2s;
+    }
+    .seta-foto:hover { background: rgba(0,0,0,0.55); }
+    .seta-foto.esq { left: 10px; }
+    .seta-foto.dir { right: 10px; }
+    .btn-add-foto {
+      position: absolute; bottom: 10px; right: 10px;
+      background: #e6a921; color: white; border: none;
+      border-radius: 20px; padding: 5px 12px; font-size: 11px;
+      font-family: 'Quicksand'; font-weight: 700; cursor: pointer;
+      z-index: 6; display: flex; align-items: center; gap: 5px;
+    }
+
+    /* ── CORPO DO CARD ── */
+    .card-body { padding: 16px 18px 18px; }
+    .dono-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .dono-nome { font-family: 'Radiant Charisma'; font-size: 15px; color: #701d1c; }
+    .dono-cidade { font-size: 11px; color: #a6a6a6; }
+    .avaliacao {
+      display: flex; align-items: center; gap: 5px;
+      background: #701d1c; color: white; border-radius: 20px;
+      padding: 5px 12px; font-size: 13px; font-weight: 700;
+    }
+    .avaliacao .estrela { color: #e6a921; font-size: 14px; }
+    .trocas-feitas { font-size: 10px; color: rgba(255,255,255,0.7); margin-left: 2px; }
+    .divisor { border: none; border-top: 1px solid rgba(0,0,0,0.08); margin: 10px 0; }
+    .livro-titulo { font-family: 'Radiant Charisma'; font-size: 20px; color: #2c2c2c; margin-bottom: 2px; line-height: 1.2; }
+    .livro-autor { font-size: 12px; color: #a6a6a6; margin-bottom: 10px; }
+    .secao-generos { margin-bottom: 10px; }
+    .generos-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; color: #a6a6a6; margin-bottom: 6px; }
+    .generos-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tag-genero { padding: 4px 12px; border-radius: 14px; font-size: 11px; font-weight: 700; background: #e6a921; color: white; }
+    .tag-genero.comum { background: #701d1c; color: white; position: relative; }
+    .tag-genero.comum::before { content: '✓ '; font-size: 10px; opacity: 0.8; }
+    .estado-row { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #a6a6a6; }
+    .estado-bolinha { width: 8px; height: 8px; border-radius: 50%; }
+    .estado-otimo  { background: #4caf50; }
+    .estado-bom    { background: #8bc34a; }
+    .estado-usado  { background: #e6a921; }
+    .estado-marcas { background: #ff9800; }
+
+    /* ── BOTÕES AÇÃO ── */
+    .acoes { display: flex; justify-content: center; align-items: center; gap: 24px; margin-top: 22px; }
+    .btn-acao { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; background: none; border: none; font-family: 'Quicksand'; }
+    .btn-acao .circulo {
+      width: 60px; height: 60px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-acao:hover .circulo { transform: scale(1.1); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
+    .btn-acao:active .circulo { transform: scale(0.95); }
+    .btn-acao .label { font-size: 12px; font-weight: 700; color: #a6a6a6; }
+    .btn-proximo .circulo { background: white; }
+    .btn-curtir  .circulo { background: #701d1c; }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+      background-color: #701d1c; color: white; padding: 12px 28px;
+      border-radius: 30px; font-size: 14px; font-family: 'Quicksand';
+      font-weight: 700; opacity: 0; transition: opacity 0.3s;
+      z-index: 9999; pointer-events: none; white-space: nowrap;
+    }
+    .toast.visivel { opacity: 1; }
+
+    /* ── FIM DOS CARDS ── */
+    .fim-cards { display: none; flex-direction: column; align-items: center; gap: 16px; color: #a6a6a6; text-align: center; }
+    .fim-cards .emoji { font-size: 52px; }
+    .fim-cards .titulo { font-family: 'Radiant Charisma'; font-size: 22px; color: #2c2c2c; }
+    .fim-cards .sub { font-size: 13px; }
+    .btn-recarregar { padding: 12px 28px; background: #701d1c; color: white; border: none; border-radius: 24px; font-family: 'Quicksand'; font-size: 14px; font-weight: 700; cursor: pointer; }
+    .btn-recarregar:hover { background: #5a1615; }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="barra-lateral">
+    <div class="container-nome-sistema">
+
+      <h1>
+        <span>book</span><br>
+        <span>match</span>
+      </h1>
+    </div>
+
+    <span class="rotulo-nav">PRINCIPAL</span>
+    <a class="item-nav" href="estante.html">📚 Minha Estante</a>
+    <a class="item-nav ativo" href="descobrir.html">🔎 Descobrir Livros</a>
+    <a class="item-nav" href="curtidas.html"> 💕 Curtidas</a>
+    <a class="item-nav" href="mensagens.html">💬 Mensagens <span class="notificacao">3</span></a>
+    <a class="item-nav" href="configuracao.html">⚙️ Configurações</a>
+
+
+    <span class="rotulo-nav">ESTANTES</span>
+    <a class="item-nav" href="matches.html">❤️ Matches</a>
+    <a class="item-nav" href="troca.html">✅ Trocas</a>
+    <a class="item-nav" href="queroler.html">🛒 Quero ler</a>
+  </aside>
+
+
+  <div class="conteudo">
+    <div class="page-title">Descobrir Livros</div>
+
+    <div class="card-stack" id="cardStack">
+      <div class="livro-card" id="cardAtual">
+        <div class="swipe-overlay like" id="overlayLike">💚 Curtir!</div>
+        <div class="swipe-overlay nope" id="overlayNope">✕ Próximo</div>
+
+        <div class="fotos-container" id="fotosContainer">
+          <div class="fotos-slider" id="fotosSlider"></div>
+          <div class="foto-dots" id="fotoDots"></div>
+          <button class="seta-foto esq" onclick="mudarFoto(-1)" id="setaEsq">‹</button>
+          <button class="seta-foto dir" onclick="mudarFoto(1)"  id="setaDir">›</button>
+          <button class="btn-add-foto" onclick="abrirModalFoto()">📷 Adicionar foto</button>
+          <input type="file" id="inputFoto" accept="image/*" onchange="adicionarFoto(event)">
+        </div>
+
+        <div class="card-body">
+          <div class="dono-row">
+            <div>
+              <div class="dono-nome" id="donoNome"></div>
+              <div class="dono-cidade" id="donoCidade"></div>
+            </div>
+            <div class="avaliacao">
+              <span class="estrela">★</span>
+              <span id="donoNota"></span>
+              <span class="trocas-feitas" id="donoTrocas"></span>
+            </div>
+          </div>
+          <hr class="divisor">
+          <div class="livro-titulo" id="livroTitulo"></div>
+          <div class="livro-autor"  id="livroAutor"></div>
+          <div class="secao-generos">
+            <div class="generos-label">GÊNEROS EM COMUM</div>
+            <div class="generos-row" id="generosRow"></div>
+          </div>
+          <div class="estado-row">
+            <div class="estado-bolinha" id="estadoBolinha"></div>
+            <span id="estadoTexto"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fim-cards" id="fimCards">
+      <div class="emoji">📚</div>
+      <div class="titulo">Você viu tudo por hoje!</div>
+      <div class="sub">Volte mais tarde para novos livros disponíveis.</div>
+      <button class="btn-recarregar" onclick="reiniciar()">Recomeçar</button>
+    </div>
+
+    <div class="acoes" id="acoesDiv">
+      <button class="btn-acao btn-proximo" onclick="proxLivro()">
+        <div class="circulo">❌</div>
+        <span class="label">Próximo</span>
+      </button>
+      <button class="btn-acao btn-curtir" onclick="curtirLivro()">
+        <div class="circulo">❤️</div>
+        <span class="label">Curtir</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const generosDoUsuario = ['Fantasia', 'Ficção', 'Suspense', 'Romance'];
+
+    const livros = [
+      {
+        id: 1,
+        titulo: 'A Cabeça do Santo',
+        autor: 'Socorro Acioli',
+        dono: { nome: 'Rafaella Silva', cidade: 'São Paulo, SP', nota: 4.3, trocas: 12 },
+        generos: ['Fantasia', 'Ficção', 'Drama'],
+        estado: 'bom',
+        fotos: [
+          { tipo: 'capa', url: 'https://covers.openlibrary.org/b/id/8739161-L.jpg', label: 'Capa' },
+          { tipo: 'estado', url: null, label: 'Estado 1' },
+        ],
+      },
+      {
+        id: 2,
+        titulo: 'O Senhor dos Anéis',
+        autor: 'J.R.R. Tolkien',
+        dono: { nome: 'Carlos Mendes', cidade: 'Curitiba, PR', nota: 4.8, trocas: 27 },
+        generos: ['Fantasia', 'Aventura', 'Clássico'],
+        estado: 'otimo',
+        fotos: [
+          { tipo: 'capa', url: 'https://covers.openlibrary.org/b/id/9255566-L.jpg', label: 'Capa' },
+          { tipo: 'estado', url: null, label: 'Estado 1' },
+        ],
+      },
+      {
+        id: 3,
+        titulo: 'Duna',
+        autor: 'Frank Herbert',
+        dono: { nome: 'Beatriz Lopes', cidade: 'Belo Horizonte, MG', nota: 3.9, trocas: 5 },
+        generos: ['Ficção Científica', 'Suspense', 'Aventura'],
+        estado: 'usado',
+        fotos: [
+          { tipo: 'capa', url: 'https://covers.openlibrary.org/b/id/8482499-L.jpg', label: 'Capa' },
+          { tipo: 'estado', url: null, label: 'Estado 1' },
+        ],
+      },
+      {
+        id: 4,
+        titulo: 'Harry Potter e a Pedra Filosofal',
+        autor: 'J.K. Rowling',
+        dono: { nome: 'Lucas Ferreira', cidade: 'Porto Alegre, RS', nota: 4.6, trocas: 19 },
+        generos: ['Fantasia', 'Aventura', 'Jovem Adulto'],
+        estado: 'bom',
+        fotos: [
+          { tipo: 'capa', url: 'https://covers.openlibrary.org/b/id/10110415-L.jpg', label: 'Capa' },
+          { tipo: 'estado', url: null, label: 'Estado 1' },
+        ],
+      },
+    ];
+
+    let indiceAtual = 0, fotoAtual = 0, fotosCard = [];
+    let arrastando = false, startX = 0, currentX = 0;
+
+    const estadoConfig = {
+      otimo:  { classe: 'estado-otimo',  texto: 'Estado: Ótimo — como novo' },
+      bom:    { classe: 'estado-bom',    texto: 'Estado: Bom — bem conservado' },
+      usado:  { classe: 'estado-usado',  texto: 'Estado: Usado — algumas marcas' },
+      marcas: { classe: 'estado-marcas', texto: 'Estado: Desgastado — marcas visíveis' },
+    };
+
+    function renderizarCard(idx) {
+      const livro = livros[idx];
+      if (!livro) { mostrarFimCards(); return; }
+      fotoAtual = 0;
+      fotosCard = [...livro.fotos];
+      document.getElementById('donoNome').textContent    = livro.dono.nome;
+      document.getElementById('donoCidade').textContent  = `📍 ${livro.dono.cidade}`;
+      document.getElementById('donoNota').textContent    = livro.dono.nota.toFixed(1);
+      document.getElementById('donoTrocas').textContent  = `(${livro.dono.trocas} trocas)`;
+      document.getElementById('livroTitulo').textContent = livro.titulo;
+      document.getElementById('livroAutor').textContent  = livro.autor;
+      const row = document.getElementById('generosRow');
+      row.innerHTML = '';
+      livro.generos.forEach(g => {
+        const emComum = generosDoUsuario.includes(g);
+        const span = document.createElement('span');
+        span.className = `tag-genero${emComum ? ' comum' : ''}`;
+        span.textContent = g;
+        if (emComum) span.title = 'Gênero em comum com você!';
+        row.appendChild(span);
+      });
+      const cfg = estadoConfig[livro.estado] || estadoConfig.bom;
+      document.getElementById('estadoBolinha').className = `estado-bolinha ${cfg.classe}`;
+      document.getElementById('estadoTexto').textContent = cfg.texto;
+      renderizarFotos();
+      const card = document.getElementById('cardAtual');
+      card.style.transform = '';
+      card.classList.remove('swipe-left', 'swipe-right');
+      document.getElementById('overlayLike').style.opacity = 0;
+      document.getElementById('overlayNope').style.opacity = 0;
+    }
+
+    function renderizarFotos() {
+      const slider = document.getElementById('fotosSlider');
+      const dots   = document.getElementById('fotoDots');
+      slider.innerHTML = dots.innerHTML = '';
+      fotosCard.forEach((foto, i) => {
+        if (foto.url) {
+          const img = document.createElement('img');
+          img.className = 'foto-slide'; img.src = foto.url; img.alt = foto.label;
+          img.onerror = () => img.replaceWith(criarPlaceholder(foto.label));
+          slider.appendChild(img);
+        } else { slider.appendChild(criarPlaceholder(foto.label)); }
+        const dot = document.createElement('div');
+        dot.className = `dot${i === fotoAtual ? ' ativo' : ''}`;
+        dot.onclick = () => irParaFoto(i);
+        dots.appendChild(dot);
+      });
+      atualizarSlider(); atualizarSetas();
+    }
+
+    function criarPlaceholder(label) {
+      const div = document.createElement('div');
+      div.className = 'foto-slide placeholder';
+      div.innerHTML = label === 'Capa' ? '📖' : '📸';
+      return div;
+    }
+
+    function mudarFoto(dir) {
+      fotoAtual = (fotoAtual + dir + fotosCard.length) % fotosCard.length;
+      atualizarSlider(); atualizarDots(); atualizarSetas();
+    }
+    function irParaFoto(idx) { fotoAtual = idx; atualizarSlider(); atualizarDots(); atualizarSetas(); }
+    function atualizarSlider() { document.getElementById('fotosSlider').style.transform = `translateX(-${fotoAtual * 100}%)`; }
+    function atualizarDots() { document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('ativo', i === fotoAtual)); }
+    function atualizarSetas() {
+      const v = fotosCard.length > 1 ? 'flex' : 'none';
+      document.getElementById('setaEsq').style.display = v;
+      document.getElementById('setaDir').style.display = v;
+    }
+
+    function abrirModalFoto() { document.getElementById('modalFoto').classList.add('aberto'); }
+    function fecharModalFoto() { document.getElementById('modalFoto').classList.remove('aberto'); }
+    function escolherFotoGaleria() { fecharModalFoto(); document.getElementById('inputFoto').click(); }
+
+
+    function proxLivro() { animarSaida('left'); }
+    function curtirLivro() { animarSaida('right'); mostrarToast(`❤️ Você curtiu "${livros[indiceAtual].titulo}"!`); }
+    function animarSaida(dir) {
+      const card = document.getElementById('cardAtual');
+      card.classList.add(dir === 'right' ? 'swipe-right' : 'swipe-left');
+      setTimeout(() => { indiceAtual++; renderizarCard(indiceAtual); }, 380);
+    }
+    function mostrarFimCards() {
+      ['cardAtual', 'cardStack', 'acoesDiv'].forEach(id => document.getElementById(id).style.display = 'none');
+      document.getElementById('fimCards').style.display = 'flex';
+    }
+    function reiniciar() {
+      indiceAtual = 0;
+      ['cardAtual', 'cardStack'].forEach(id => document.getElementById(id).style.display = '');
+      document.getElementById('acoesDiv').style.display = 'flex';
+      document.getElementById('fimCards').style.display = 'none';
+      renderizarCard(0);
+    }
+
+    const card = document.getElementById('cardAtual');
+    function onStart(x) { arrastando = true; startX = x; card.style.transition = 'none'; }
+    function onMove(x) {
+      if (!arrastando) return;
+      currentX = x - startX;
+      card.style.transform = `translateX(${currentX}px) rotate(${currentX * 0.08}deg)`;
+      const l = document.getElementById('overlayLike'), n = document.getElementById('overlayNope');
+      if (currentX > 20)       { l.style.opacity = Math.min(currentX / 100, 1);  n.style.opacity = 0; }
+      else if (currentX < -20) { n.style.opacity = Math.min(-currentX / 100, 1); l.style.opacity = 0; }
+      else                     { l.style.opacity = 0; n.style.opacity = 0; }
+    }
+    function onEnd() {
+      if (!arrastando) return; arrastando = false; card.style.transition = '';
+      if (currentX > 80) curtirLivro();
+      else if (currentX < -80) proxLivro();
+      else {
+        card.style.transform = '';
+        document.getElementById('overlayLike').style.opacity = 0;
+        document.getElementById('overlayNope').style.opacity = 0;
+      }
+      currentX = 0;
+    }
+
+    card.addEventListener('mousedown',    e => { if (!e.target.closest('button')) onStart(e.clientX); });
+    document.addEventListener('mousemove', e => onMove(e.clientX));
+    document.addEventListener('mouseup',   () => onEnd());
+    card.addEventListener('touchstart', e => onStart(e.touches[0].clientX), { passive: true });
+    card.addEventListener('touchmove',  e => onMove(e.touches[0].clientX),  { passive: true });
+    card.addEventListener('touchend',   () => onEnd());
+
+    function mostrarToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('visivel');
+      setTimeout(() => t.classList.remove('visivel'), 3000);
+    }
+
+    renderizarCard(0);
+  </script>
+</body>
+</html>

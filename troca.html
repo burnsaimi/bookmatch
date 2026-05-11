@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BookMatch – Troca</title>
+  <style>
+    @font-face { font-family: 'Radiant Charisma'; src: url('fonts/RadiantCharismaDEMO-Medium.ttf') format('truetype'); }
+    @font-face { font-family: 'Quicksand'; src: url('fonts/Quicksand-Bold.ttf') format('truetype'); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { height: 100vh; display: flex; font-family: 'Quicksand', sans-serif; background-color: #fffdf3; overflow: hidden; }
+
+    .barra-lateral { width: 280px; min-width: 280px; background-color: #701d1c; display: flex; flex-direction: column; padding: 50px 0; position: relative; overflow: hidden; z-index: 1; }
+    .barra-lateral::before { content: ''; position: absolute; bottom: -80px; left: -80px; width: 300px; height: 300px; background: rgba(173,114,114,0.22); border-radius: 45% 55% 40% 60%; pointer-events: none; }
+    .barra-lateral::after { content: ''; position: absolute; top: -40px; right: -40px; width: 180px; height: 180px; background: rgba(173,114,114,0.22); border-radius: 60% 40% 55% 45%; pointer-events: none; }
+    .container-nome-sistema { padding: 0 30px 50px; z-index: 2; }
+    .container-nome-sistema h1 { font-family: 'Radiant Charisma'; font-size: 36px; line-height: 0.9; }
+    .container-nome-sistema h1 span:first-child { color: #bcb24d; }
+    .container-nome-sistema h1 span:last-child  { color: #e6a921; }
+    .rotulo-nav { font-size: 10px; letter-spacing: 1.5px; color: rgba(255,255,255,0.5); padding: 20px 30px 10px; z-index: 2; font-weight: bold; }
+    .item-nav { display: flex; align-items: center; gap: 12px; padding: 12px 30px; color: #fff; font-size: 14px; cursor: pointer; transition: 0.3s; z-index: 2; text-decoration: none; }
+    .item-nav:hover { background: rgba(255,255,255,0.1); }
+    .item-nav.ativo { background: rgba(255,255,255,0.15); font-weight: bold; border-left: 4px solid #e6a921; }
+    .notificacao { margin-left: auto; background: #e4568b; color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 10px; }
+
+    .conteudo { flex: 1; padding: 40px; overflow-y: auto; background-color: #fffdf3; }
+
+    .topo { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; }
+    .topo h2 { font-family: 'Radiant Charisma'; font-size: 42px; color: #701d1c; }
+    .badge-total { background: #701d1c; color: #fff; border-radius: 20px; padding: 6px 18px; font-size: 13px; font-weight: bold; }
+
+    .grade { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+
+    .card-livro { background: #ede9d3; border-radius: 16px; overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.07); position: relative; }
+    .card-livro:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.13); }
+
+    .card-capa-placeholder { width: 100%; aspect-ratio: 2/3; display: flex; align-items: center; justify-content: center; font-size: 48px; }
+    .card-capa-img { width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block; }
+
+    .card-info { padding: 12px 14px 14px; }
+    .card-titulo { font-family: 'Radiant Charisma'; font-size: 15px; color: #2c2c2c; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-autor  { font-size: 11px; color: #a6a6a6; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .status-row { display: flex; align-items: center; gap: 6px; }
+    .status-bolinha { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .status-disponivel  { background: #4caf50; }
+    .status-negociando  { background: #e6a921; }
+    .status-concluida   { background: #a6a6a6; }
+    .status-texto { font-size: 11px; font-weight: bold; }
+    .status-disponivel-txt  { color: #4caf50; }
+    .status-negociando-txt  { color: #e6a921; }
+    .status-concluida-txt   { color: #a6a6a6; }
+
+    .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background-color: #701d1c; color: white; padding: 12px 28px; border-radius: 30px; font-size: 14px; font-family: 'Quicksand'; font-weight: 700; opacity: 0; transition: opacity 0.3s; z-index: 999; pointer-events: none; }
+    .toast.visivel { opacity: 1; }
+
+
+    .btn-remover {
+      position: absolute; top: 10px; right: 10px;
+      background: rgba(0,0,0,0.35); color: #fff;
+      border: none; border-radius: 50%; width: 28px; height: 28px;
+      font-size: 14px; cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      transition: background 0.2s; z-index: 5;
+    }
+    .btn-remover:hover { background: rgba(180,30,30,0.8); }
+  </style>
+</head>
+<body>
+  <aside class="barra-lateral">
+    <div class="container-nome-sistema">
+      <h1><span>book</span><br><span>match</span></h1>
+    </div>
+    
+   <span class="rotulo-nav">PRINCIPAL</span>
+    <a class="item-nav" href="estante.html">📚 Minha Estante</a>
+    <a class="item-nav" href="adicionarlivro.html">🔍 Adicionar Livro</a>
+    <a class="item-nav" href="descobrir.html">🔎 Descobrir Livros</a>
+    <a class="item-nav" href="curtidas.html"> 💕 Curtidas</a>
+    <a class="item-nav" href="mensagens.html">💬 Mensagens <span class="notificacao">3</span></a>
+    <a class="item-nav" href="configuracao.html">⚙️ Configurações</a>
+
+    <span class="rotulo-nav">SUAS LISTAS</span>
+    <a class="item-nav" href="matches.html">❤️ Matches</a>
+    <a class="item-nav ativo" href="troca.html">✅ Trocas</a>
+    <a class="item-nav" href="queroler.html">🛒 Quero Ler</a>
+  </aside>
+
+  <div class="conteudo">
+    <div class="topo">
+      <h2>Troca</h2>
+      <span class="badge-total" id="badgeTotal">0 livros</span>
+    </div>
+
+    <div class="grade" id="grade"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const statusConfig = {
+      disponivel: { classe: 'status-disponivel', textoClasse: 'status-disponivel-txt', texto: 'Disponível' },
+      negociando: { classe: 'status-negociando', textoClasse: 'status-negociando-txt', texto: 'Em negociação' },
+      concluida:  { classe: 'status-concluida',  textoClasse: 'status-concluida-txt',  texto: 'Troca concluída' },
+    };
+
+
+    const livrosFixos = [
+      { titulo: 'Corte de Espinhos', autor: 'Sarah J. Maas',       cor: '#6b4c2a', status: 'disponivel' },
+      { titulo: 'Vade Mecum',        autor: 'Diversos Autores',     cor: '#2e7d32', status: 'negociando' },
+      { titulo: 'Teto para Dois',    autor: 'Colleen Hoover',       cor: '#1565c0', status: 'disponivel' },
+      { titulo: 'Rivalidade Ardente',autor: 'Ana Huang',            cor: '#ad1457', status: 'concluida'  },
+      { titulo: 'Duna',              autor: 'Frank Herbert',        cor: '#33691e', status: 'disponivel' },
+      { titulo: 'Transformers',      autor: 'Brian Ruckley',        cor: '#bf360c', status: 'negociando' },
+      { titulo: 'O Alquimista',      autor: 'Paulo Coelho',         cor: '#6d4c41', status: 'disponivel' },
+      { titulo: 'Jogos Vorazes',     autor: 'Suzanne Collins',      cor: '#37474f', status: 'concluida'  },
+      { titulo: 'Percy Jackson',     autor: 'Rick Riordan',         cor: '#1a237e', status: 'disponivel' },
+      { titulo: 'A Menina que Roubava Livros', autor: 'Markus Zusak', cor: '#4e342e', status: 'negociando' },
+    ];
+
+    const CHAVE_TROCA = 'bm_troca';
+
+    function lerDoStorage() {
+      try { return JSON.parse(localStorage.getItem(CHAVE_TROCA)) || []; }
+      catch { return []; }
+    }
+    function removerDoStorage(titulo) {
+      const lista = lerDoStorage().filter(l => l.titulo !== titulo);
+      localStorage.setItem(CHAVE_TROCA, JSON.stringify(lista));
+    }
+
+    function montarLista() {
+      const doStorage = lerDoStorage();
+      const titlosFixos = livrosFixos.map(l => l.titulo);
+      const novos = doStorage.filter(l => !titlosFixos.includes(l.titulo));
+      const novosComStatus = novos.map(l => ({ ...l, status: l.status || 'disponivel' }));
+      return [...livrosFixos, ...novosComStatus];
+    }
+
+    let lista = montarLista();
+
+    function renderizar() {
+      const grade = document.getElementById('grade');
+      grade.innerHTML = '';
+      document.getElementById('badgeTotal').textContent = `${lista.length} livros`;
+
+      lista.forEach((l, i) => {
+        const isFixo = livrosFixos.some(f => f.titulo === l.titulo);
+        const cfg = statusConfig[l.status] || statusConfig['disponivel'];
+        const capaHtml = l.capaUrl
+          ? `<img class="card-capa-img" src="${l.capaUrl}" alt="Capa de ${l.titulo}">`
+          : `<div class="card-capa-placeholder" style="background:${l.cor || '#c0b090'};">📖</div>`;
+
+        grade.innerHTML += `
+          <div class="card-livro" id="card-${i}">
+            <button class="btn-remover" onclick="remover(${i}, ${isFixo})" title="Remover">✕</button>
+            ${capaHtml}
+            <div class="card-info">
+              <div class="card-titulo">${l.titulo}</div>
+              <div class="card-autor">${l.autor}</div>
+              <div class="status-row">
+                <div class="status-bolinha ${cfg.classe}"></div>
+                <span class="status-texto ${cfg.textoClasse}">${cfg.texto}</span>
+              </div>
+            </div>
+          </div>`;
+      });
+    }
+
+    function remover(i, isFixo) {
+      const titulo = lista[i].titulo;
+      if (!isFixo) removerDoStorage(titulo);
+      lista.splice(i, 1);
+      renderizar();
+      mostrarToast(`"${titulo}" removido da lista`);
+    }
+
+    function mostrarToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('visivel');
+      setTimeout(() => t.classList.remove('visivel'), 3000);
+    }
+
+    renderizar();
+  </script>
+</body>
+</html>

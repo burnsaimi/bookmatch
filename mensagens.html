@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BookMatch – Mensagens</title>
+  <style>
+    @font-face { font-family: 'Radiant Charisma'; src: url('fonts/RadiantCharismaDEMO-Medium.ttf') format('truetype'); }
+    @font-face { font-family: 'Quicksand'; src: url('fonts/Quicksand-Bold.ttf') format('truetype'); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { height: 100vh; display: flex; font-family: 'Quicksand', sans-serif; background-color: #fffdf3; overflow: hidden; }
+
+    /* ── SIDEBAR ── */
+    .barra-lateral { width: 280px; min-width: 280px; background-color: #701d1c; display: flex; flex-direction: column; padding: 50px 0; position: relative; overflow: hidden; z-index: 1; }
+    .barra-lateral::before { content: ''; position: absolute; bottom: -80px; left: -80px; width: 300px; height: 300px; background: rgba(173,114,114,0.22); border-radius: 45% 55% 40% 60%; pointer-events: none; }
+    .barra-lateral::after { content: ''; position: absolute; top: -40px; right: -40px; width: 180px; height: 180px; background: rgba(173,114,114,0.22); border-radius: 60% 40% 55% 45%; pointer-events: none; }
+    .container-nome-sistema { padding: 0 30px 50px; z-index: 2; }
+    .container-nome-sistema h1 { font-family: 'Radiant Charisma'; font-size: 36px; line-height: 0.9; }
+    .container-nome-sistema h1 span:first-child { color: #bcb24d; }
+    .container-nome-sistema h1 span:last-child  { color: #e6a921; }
+    .rotulo-nav { font-size: 10px; letter-spacing: 1.5px; color: rgba(255,255,255,0.5); padding: 20px 30px 10px; z-index: 2; font-weight: bold; }
+    .item-nav { display: flex; align-items: center; gap: 12px; padding: 12px 30px; color: #fff; font-size: 14px; cursor: pointer; transition: 0.3s; z-index: 2; text-decoration: none; }
+    .item-nav:hover { background: rgba(255,255,255,0.1); }
+    .item-nav.ativo { background: rgba(255,255,255,0.15); font-weight: bold; border-left: 4px solid #e6a921; }
+    .notificacao { margin-left: auto; background: #e4568b; color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 10px; }
+
+    /* ── LAYOUT PRINCIPAL ── */
+    .conteudo { flex: 1; display: flex; overflow: hidden; }
+
+    /* ── PAINEL ESQUERDO: LISTA ── */
+    .painel-lista {
+      width: 320px;
+      min-width: 320px;
+      background: #fffdf3;
+      border-right: 1px solid #ede9d3;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .lista-topo {
+      padding: 28px 20px 16px;
+      border-bottom: 1px solid #ede9d3;
+    }
+    .lista-topo h2 { font-family: 'Radiant Charisma'; font-size: 32px; color: #701d1c; margin-bottom: 14px; }
+
+    .busca-conversa {
+      width: 100%;
+      height: 38px;
+      background: #ede9d3;
+      border: none;
+      border-radius: 20px;
+      padding: 0 16px;
+      font-family: 'Quicksand';
+      font-size: 13px;
+      color: #2c2c2c;
+      outline: none;
+    }
+    .busca-conversa::placeholder { color: #a6a6a6; }
+
+    /* Novos matches */
+    .secao-matches {
+      padding: 14px 20px 10px;
+      border-bottom: 1px solid #ede9d3;
+    }
+    .secao-matches-label { font-size: 11px; font-weight: bold; letter-spacing: 1px; color: #e6a921; margin-bottom: 10px; }
+    .matches-row { display: flex; gap: 12px; }
+    .avatar-match {
+      width: 46px; height: 46px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; font-weight: bold; color: #fff;
+      cursor: pointer; flex-shrink: 0;
+      border: 3px solid #e6a921;
+      transition: transform 0.15s;
+    }
+    .avatar-match:hover { transform: scale(1.08); }
+
+    /* Lista de conversas */
+    .lista-conversas { flex: 1; overflow-y: auto; }
+    .lista-conversas::-webkit-scrollbar { width: 4px; }
+    .lista-conversas::-webkit-scrollbar-thumb { background: #ede9d3; border-radius: 4px; }
+
+    .item-conversa {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      cursor: pointer;
+      transition: background 0.2s;
+      border-bottom: 1px solid #f5f0e8;
+    }
+    .item-conversa:hover { background: #f5f0e8; }
+    .item-conversa.ativa { background: #ede9d3; }
+
+    .avatar-conversa {
+      width: 46px; height: 46px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; font-weight: bold; color: #fff;
+      flex-shrink: 0;
+    }
+    .conversa-info { flex: 1; min-width: 0; }
+    .conversa-nome { font-size: 14px; font-weight: bold; color: #2c2c2c; }
+    .conversa-preview { font-size: 12px; color: #a6a6a6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+    .conversa-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
+    .conversa-hora { font-size: 11px; color: #a6a6a6; }
+    .badge-msg { background: #e4568b; color: #fff; font-size: 10px; font-weight: bold; padding: 2px 7px; border-radius: 10px; }
+
+    /* ── PAINEL DIREITO: CHAT ── */
+    .painel-chat {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: #f5f0e8; /* fallback caso sem imagem */
+    }
+
+    /* Estado vazio (nenhuma conversa selecionada) */
+    .chat-vazio {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: #a6a6a6;
+    }
+    .chat-vazio .emoji { font-size: 52px; }
+    .chat-vazio .texto { font-family: 'Radiant Charisma'; font-size: 22px; color: #c0b090; }
+    .chat-vazio .sub { font-size: 13px; }
+
+    /* Chat aberto */
+    .chat-aberto { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* Cabeçalho do chat */
+    .chat-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 24px;
+      background: #fffdf3;
+      border-bottom: 1px solid #ede9d3;
+      flex-shrink: 0;
+    }
+    .chat-header-avatar { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: bold; color: #fff; flex-shrink: 0; }
+    .chat-header-info { flex: 1; }
+    .chat-header-nome { font-size: 15px; font-weight: bold; color: #2c2c2c; }
+    .chat-header-status { font-size: 11px; color: #4caf50; }
+
+    .chat-mensagens {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: url('images/fundo-chat.png') center/cover;
+    }
+    .chat-mensagens::-webkit-scrollbar { width: 4px; }
+    .chat-mensagens::-webkit-scrollbar-thumb { background: #c0b090; border-radius: 4px; }
+
+    /* Balão de match */
+    .balao-match {
+      align-self: center;
+      background: #eafbe7;
+      border-radius: 16px;
+      padding: 12px 20px;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .balao-match .match-titulo { font-family: 'Radiant Charisma'; font-size: 16px; color: #2e7d32; }
+    .balao-match .match-sub { font-size: 12px; color: #4caf50; margin-top: 2px; }
+
+    /* Balões de mensagem */
+    .msg-row { display: flex; align-items: flex-end; gap: 8px; }
+    .msg-row.enviada { flex-direction: row-reverse; }
+
+    .msg-avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #fff; flex-shrink: 0; }
+
+    .balao {
+      max-width: 60%;
+      padding: 10px 14px;
+      border-radius: 18px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    /* Mensagem recebida */
+    .balao.recebida {
+      background: rgba(255,255,255,0.85);
+      color: #2c2c2c;
+      border-bottom-left-radius: 4px;
+    }
+    /* Mensagem enviada */
+    .balao.enviada {
+      background: #701d1c;
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    /* Balão de recomendação */
+    .balao-recomendacao {
+      max-width: 60%;
+      background: rgba(230,169,33,0.15);
+      border: 1px solid #e6a921;
+      border-radius: 14px;
+      padding: 10px 14px;
+      font-size: 12px;
+    }
+    .rec-label { font-size: 10px; font-weight: bold; color: #e6a921; letter-spacing: 1px; margin-bottom: 4px; }
+    .rec-titulo { font-family: 'Radiant Charisma'; font-size: 15px; color: #2c2c2c; }
+    .rec-meta { font-size: 11px; color: #a6a6a6; margin-top: 2px; }
+
+    /* Input de mensagem */
+    .chat-input-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      background: #fffdf3;
+      border-top: 1px solid #ede9d3;
+      flex-shrink: 0;
+    }
+    .chat-input {
+      flex: 1;
+      height: 42px;
+      background: #ede9d3;
+      border: none;
+      border-radius: 22px;
+      padding: 0 18px;
+      font-family: 'Quicksand';
+      font-size: 13px;
+      color: #2c2c2c;
+      outline: none;
+    }
+    .chat-input::placeholder { color: #a6a6a6; }
+    .btn-enviar {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: #701d1c; color: #fff; border: none;
+      font-size: 18px; cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .btn-enviar:hover { background: #5a1615; }
+  </style>
+</head>
+<body>
+
+  <aside class="barra-lateral">
+    <div class="container-nome-sistema">
+      <h1><span>book</span><br><span>match</span></h1>
+    </div>
+
+    <span class="rotulo-nav">PRINCIPAL</span>
+    <a class="item-nav" href="estante.html">📚 Minha Estante</a>
+    <a class="item-nav" href="descobrir.html">🔎 Descobrir Livros</a>
+    <a class="item-nav" href="curtidas.html"> 💕 Curtidas</a>
+    <a class="item-nav" href="mensagens.html">💬 Mensagens <span class="notificacao">3</span></a>
+    <a class="item-nav" href="configuracao.html">⚙️ Configurações</a>
+
+    <span class="rotulo-nav">SUAS LISTAS</span>
+    <a class="item-nav ativo" href="matches.html">❤️ Matches</a>
+    <a class="item-nav" href="troca.html">✅ Trocas</a>
+    <a class="item-nav" href="queroler.html">🛒 Quero Ler</a>
+  </aside>
+
+  <!-- CONTEÚDO -->
+  <div class="conteudo">
+
+    <!-- PAINEL ESQUERDO -->
+    <div class="painel-lista">
+      <div class="lista-topo">
+        <h2>Mensagens</h2>
+        <input class="busca-conversa" type="text" placeholder="🔍 Buscar conversas" id="buscaInput" oninput="filtrarConversas()">
+      </div>
+
+      <div class="secao-matches">
+        <div class="secao-matches-label">✨ NOVOS MATCHES</div>
+        <div class="matches-row" id="matchesRow"></div>
+      </div>
+
+      <div class="lista-conversas" id="listaConversas"></div>
+    </div>
+
+    <!-- PAINEL DIREITO -->
+    <div class="painel-chat" id="painelChat">
+      <div class="chat-vazio" id="chatVazio">
+        <div class="emoji">💬</div>
+        <div class="texto">Suas mensagens</div>
+        <div class="sub">Selecione uma conversa para começar</div>
+      </div>
+      <div class="chat-aberto" id="chatAberto" style="display:none;">
+        <div class="chat-header">
+          <div class="chat-header-avatar" id="chatHeaderAvatar"></div>
+          <div class="chat-header-info">
+            <div class="chat-header-nome" id="chatHeaderNome"></div>
+            <div class="chat-header-status" id="chatHeaderStatus"></div>
+          </div>
+        </div>
+        <div class="chat-mensagens" id="chatMensagens"></div>
+        <div class="chat-input-area">
+          <input class="chat-input" type="text" id="chatInput" placeholder="Escreva uma mensagem..." onkeydown="if(event.key==='Enter') enviarMensagem()">
+          <button class="btn-enviar" onclick="enviarMensagem()">➤</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const eu = { nome: 'João Ferreira', iniciais: 'JF', cor: '#701d1c' };
+
+    const conversas = [
+      {
+        id: 1,
+        nome: 'Rafael Campos',
+        iniciais: 'RC',
+        cor: '#e4568b',
+        status: 'Online agora',
+        online: true,
+        hora: '14:32',
+        preview: 'Você já leu Hyperion? É incrível!',
+        naoLidas: 3,
+        match: { titulo: 'Você e Rafael têm 3 livros em comum' },
+        mensagens: [
+          { de: 'outro', texto: 'Oi! Vi que você ama Duna. Qual parte da saga você mais gostou?' },
+          { de: 'eu', texto: 'Oi Rafael! Com certeza o primeiro livro ainda é meu favorito, mas Duna Messias tem uma profundidade incrível!' },
+          { de: 'outro', texto: 'Concordo! E o que você acha da adaptação do Denis Villeneuve? Eu amei como ele capturou o Arrakis' },
+          { de: 'eu', texto: 'Foi linda! Mas o livro ainda ganha com folga. Tem tanto detalhe que não dá pra colocar em 3 horas de filme rsrs' },
+          { de: 'outro', tipo: 'recomendacao', livro: 'Hyperion', autor: 'Dan Simmons', genero: 'Ficção Científica', ano: '1989' },
+        ]
+      },
+      {
+        id: 2,
+        nome: 'Marina Costa',
+        iniciais: 'MC',
+        cor: '#6b7f46',
+        status: 'Visto ontem',
+        online: false,
+        hora: 'ontem',
+        preview: 'Obrigado pela recomendação...',
+        naoLidas: 3,
+        match: { titulo: 'Você e Marina têm 2 livros em comum' },
+        mensagens: [
+          { de: 'eu', texto: 'Oi Marina! Vi que você também ama Fantasia. Já leu O Nome do Vento?' },
+          { de: 'outro', texto: 'Ainda não! Está na minha lista faz tempo. Vale a pena?' },
+          { de: 'eu', texto: 'Demais! É uma das melhores séries que li. O Rothfuss escreve de forma muito poética.' },
+          { de: 'outro', texto: 'Obrigado pela recomendação, vou começar essa semana!' },
+        ]
+      },
+      {
+        id: 3,
+        nome: 'Julia Santos',
+        iniciais: 'JS',
+        cor: '#3a3a5e',
+        status: 'Visto quarta',
+        online: false,
+        hora: 'qua',
+        preview: 'Você: Adorei o final também',
+        naoLidas: 0,
+        match: { titulo: 'Você e Julia têm 4 livros em comum' },
+        mensagens: [
+          { de: 'outro', texto: 'Acabei de terminar Corte de Espinhos e Rosas! Que final!' },
+          { de: 'eu', texto: 'Adorei o final também! Já vai começar o segundo?' },
+          { de: 'outro', texto: 'Já comprei rsrs. Não consigo parar!' },
+        ]
+      },
+    ];
+
+    let conversaAtiva = null;
+
+    // Renderiza avatares de novos matches
+    const matchesRow = document.getElementById('matchesRow');
+    conversas.filter(c => c.naoLidas > 0).forEach(c => {
+      matchesRow.innerHTML += `
+        <div class="avatar-match" style="background:${c.cor};" onclick="abrirConversa(${c.id})" title="${c.nome}">
+          ${c.iniciais}
+        </div>`;
+    });
+
+    // Renderiza lista de conversas
+    function renderizarLista(filtro = '') {
+      const lista = document.getElementById('listaConversas');
+      lista.innerHTML = '';
+      conversas
+        .filter(c => c.nome.toLowerCase().includes(filtro.toLowerCase()))
+        .forEach(c => {
+          lista.innerHTML += `
+            <div class="item-conversa${conversaAtiva === c.id ? ' ativa' : ''}" onclick="abrirConversa(${c.id})">
+              <div class="avatar-conversa" style="background:${c.cor};">${c.iniciais}</div>
+              <div class="conversa-info">
+                <div class="conversa-nome">${c.nome}</div>
+                <div class="conversa-preview">${c.preview}</div>
+              </div>
+              <div class="conversa-meta">
+                <span class="conversa-hora">${c.hora}</span>
+                ${c.naoLidas > 0 ? `<span class="badge-msg">${c.naoLidas}</span>` : ''}
+              </div>
+            </div>`;
+        });
+    }
+
+    function filtrarConversas() {
+      renderizarLista(document.getElementById('buscaInput').value);
+    }
+
+    function abrirConversa(id) {
+      conversaAtiva = id;
+      const c = conversas.find(x => x.id === id);
+      c.naoLidas = 0;
+
+      // Atualiza header
+      document.getElementById('chatHeaderAvatar').style.background = c.cor;
+      document.getElementById('chatHeaderAvatar').textContent = c.iniciais;
+      document.getElementById('chatHeaderNome').textContent = c.nome;
+      document.getElementById('chatHeaderStatus').textContent = (c.online ? '🟢 ' : '') + c.status;
+      document.getElementById('chatHeaderStatus').style.color = c.online ? '#4caf50' : '#a6a6a6';
+
+      // Renderiza mensagens
+      const area = document.getElementById('chatMensagens');
+      area.innerHTML = '';
+
+      // Balão de match
+      area.innerHTML += `
+        <div class="balao-match">
+          <div class="match-titulo">🎉 Vocês deram match!</div>
+          <div class="match-sub">${c.match.titulo}</div>
+        </div>`;
+
+      c.mensagens.forEach(m => {
+        if (m.tipo === 'recomendacao') {
+          area.innerHTML += `
+            <div class="msg-row">
+              <div class="msg-avatar" style="background:${c.cor};">${c.iniciais}</div>
+              <div class="balao-recomendacao">
+                <div class="rec-label">📖 Recomendação: ${m.livro}</div>
+                <div class="rec-titulo">${m.livro}</div>
+                <div class="rec-meta">${m.autor} · ${m.genero} · ${m.ano}</div>
+              </div>
+            </div>`;
+        } else if (m.de === 'outro') {
+          area.innerHTML += `
+            <div class="msg-row">
+              <div class="msg-avatar" style="background:${c.cor};">${c.iniciais}</div>
+              <div class="balao recebida">${m.texto}</div>
+            </div>`;
+        } else {
+          area.innerHTML += `
+            <div class="msg-row enviada">
+              <div class="msg-avatar" style="background:${eu.cor};">${eu.iniciais}</div>
+              <div class="balao enviada">${m.texto}</div>
+            </div>`;
+        }
+      });
+
+      // Exibe chat
+      document.getElementById('chatVazio').style.display = 'none';
+      document.getElementById('chatAberto').style.display = 'flex';
+
+      // Scroll para o fim
+      setTimeout(() => { area.scrollTop = area.scrollHeight; }, 50);
+
+      renderizarLista(document.getElementById('buscaInput').value);
+    }
+
+    function enviarMensagem() {
+      const input = document.getElementById('chatInput');
+      const texto = input.value.trim();
+      if (!texto || !conversaAtiva) return;
+
+      const c = conversas.find(x => x.id === conversaAtiva);
+      c.mensagens.push({ de: 'eu', texto });
+      c.preview = `Você: ${texto}`;
+      input.value = '';
+
+      const area = document.getElementById('chatMensagens');
+      area.innerHTML += `
+        <div class="msg-row enviada">
+          <div class="msg-avatar" style="background:${eu.cor};">${eu.iniciais}</div>
+          <div class="balao enviada">${texto}</div>
+        </div>`;
+      area.scrollTop = area.scrollHeight;
+      renderizarLista(document.getElementById('buscaInput').value);
+    }
+
+    renderizarLista();
+  </script>
+</body>
+</html>

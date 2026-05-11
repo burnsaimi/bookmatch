@@ -4,23 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BookMatch – Minha Estante</title>
+    
     <style>
-        @font-face {
-            font-family: 'Radiant Charisma';
-            src: url('fonts/RadiantCharismaDEMO-Medium.ttf') format('truetype');
-        }
-        @font-face {
-            font-family: 'Quicksand';
-            src: url('fonts/Quicksand-Bold.ttf') format('truetype');
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+          @font-face {
+        font-family: 'Radiant Charisma';
+        src: url('fonts/RadiantCharismaDEMO-Medium.ttf') format('truetype');
+      }
+      @font-face {
+        font-family: 'Quicksand';
+        src: url('fonts/Quicksand-Bold.ttf') format('truetype');
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
         body {
-            min-height: 100vh;
+            height: 100vh;
             display: flex;
             font-family: 'Quicksand', sans-serif;
             background-color: #fffdf3;
+            overflow: hidden;
         }
 
         .barra-lateral {
@@ -206,168 +211,63 @@
             text-align: center;
             line-height: 1.1;
         }
-
-        /* Tablet (≤ 1024px) */
-        @media (max-width: 1024px) {
-            .barra-lateral {
-                width: 220px;
-                min-width: 220px;
-                padding: 36px 0;
-            }
-            .container-nome-sistema {
-                padding: 0 20px 36px;
-            }
-            .item-nav {
-                padding: 10px 20px;
-            }
-            .rotulo-nav {
-                padding: 16px 20px 8px;
-            }
-            .conteudo-principal {
-                padding: 28px;
-            }
-            .linha-estatisticas {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 14px;
-                margin-bottom: 28px;
-            }
-            .topo-estante h2 {
-                font-size: 32px;
-            }
-        }
-
-        /* Mobile (≤ 640px) */
-        @media (max-width: 640px) {
-            body {
-                flex-direction: column;
-                padding-bottom: 64px;
-            }
-
-            /* Sidebar vira barra de navegação fixa no rodapé */
-            .barra-lateral {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                width: 100%;
-                min-width: unset;
-                height: 64px;
-                flex-direction: row;
-                padding: 0;
-                align-items: center;
-                justify-content: space-around;
-                z-index: 100;
-                overflow: visible;
-            }
-            .barra-lateral::before,
-            .barra-lateral::after {
-                display: none;
-            }
-            .container-nome-sistema,
-            .rotulo-nav {
-                display: none;
-            }
-            .item-nav {
-                flex-direction: column;
-                padding: 8px 6px;
-                font-size: 10px;
-                gap: 3px;
-                text-align: center;
-                border-left: none !important;
-                flex: 1;
-            }
-            .item-nav.ativo {
-                border-left: none;
-                border-top: 3px solid #e6a921;
-                background: rgba(255,255,255,0.15);
-            }
-            .notificacao {
-                display: none;
-            }
-
-            .conteudo-principal {
-                padding: 20px 16px 16px;
-                width: 100%;
-            }
-            .topo-estante {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-                margin-bottom: 20px;
-            }
-            .topo-estante h2 {
-                font-size: 28px;
-            }
-            .botao-adicionar {
-                width: 100%;
-            }
-            .linha-estatisticas {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 10px;
-                margin-bottom: 20px;
-            }
-            .valor-estatistica {
-                font-size: 32px;
-            }
-            .fila-livros {
-                padding: 16px 20px;
-                gap: 20px;
-                border-radius: 20px;
-            }
-        }
     </style>
 </head>
 <body>
 
-    <aside class="barra-lateral">
-        <div class="container-nome-sistema">
-            <h1>
-                <span>book</span><br>
-                <span>match</span>
-            </h1>
-        </div>
+     <aside class="barra-lateral">
+    <div class="container-nome-sistema">
+      <h1>
+        <span>book</span><br>
+        <span>match</span>
+      </h1>
+    </div>
 
         <span class="rotulo-nav">PRINCIPAL</span>
         <a class="item-nav ativo" href="#">📚 Minha Estante</a>
-        <a class="item-nav" href="#">🔍 Descobrir Livros</a>
-        <a class="item-nav" href="#">💬 Mensagens <span class="notificacao">3</span></a>
-        <a class="item-nav" href="#">⚙️ Configurações</a>
+        <a class="item-nav" href="descobrir.html">🔍 Descobrir Livros</a>
+        <a class="item-nav" href="curtidas.html"> 💕 Curtidas</a>
+        <a class="item-nav" href="mensagens.html">💬 Mensagens <span class="notificacao">3</span></a>
+        <a class="item-nav" href="configuracao.html">⚙️ Configurações</a>
 
         <span class="rotulo-nav">SUAS LISTAS</span>
-        <a class="item-nav" href="#">❤️ Matches</a>
-        <a class="item-nav" href="#">✔️ Trocas</a>
-        <a class="item-nav" href="#">📖 Quero ler</a>
+        <a class="item-nav" href="matches.html">❤️ Matches</a>
+        <a class="item-nav" href="troca.html">✅ Trocas</a>
+        <a class="item-nav" href="queroler.html">🛒 Quero ler</a>
     </aside>
 
     <main class="conteudo-principal">
         <div class="topo-estante">
-            <div>
-                <h2>Minha Estante</h2>
-                <p id="saudacao" style="font-family:'Quicksand'; font-size:14px; color:#a6a6a6; margin-top:4px;"></p>
-            </div>
-            <button class="botao-adicionar">＋ Adicionar Livro</button>
+            <h2>Minha Estante</h2>
+
+            <!-- botão conectado à página adicionarlivro.html -->
+            <button 
+              class="botao-adicionar"
+              onclick="window.location.href='adicionarlivro.html'">
+              ＋ Adicionar Livro
+            </button>
         </div>
 
         <div class="linha-estatisticas">
             <div class="cartao-estatistica">
                 <span class="titulo-estatistica">TOTAL DE LIVROS</span>
-                <span id="stat-livros" class="valor-estatistica">—</span>
-                <span class="legenda-estatistica">na sua estante</span>
+                <span class="valor-estatistica">67</span>
+                <span class="legenda-estatistica">+3 este mês</span>
             </div>
             <div class="cartao-estatistica">
                 <span class="titulo-estatistica">LENDO AGORA</span>
-                <span class="valor-estatistica">—</span>
-                <span class="legenda-estatistica">em breve</span>
+                <span class="valor-estatistica">2</span>
+                <span class="legenda-estatistica">Em andamento</span>
             </div>
             <div class="cartao-estatistica">
                 <span class="titulo-estatistica">MATCHES</span>
-                <span id="stat-matches" class="valor-estatistica">—</span>
-                <span class="legenda-estatistica">com outros leitores</span>
+                <span class="valor-estatistica">9</span>
+                <span class="legenda-estatistica">2 novos hoje</span>
             </div>
             <div class="cartao-estatistica">
                 <span class="titulo-estatistica">GÊNERO FAVORITO</span>
-                <span id="stat-genero" class="valor-estatistica" style="font-size: 24px; padding-top: 12px;">—</span>
-                <span class="legenda-estatistica">preferência cadastrada</span>
+                <span class="valor-estatistica" style="font-size: 24px; padding-top: 12px;">Fantasia</span>
+                <span class="legenda-estatistica">14 títulos</span>
             </div>
         </div>
 
@@ -419,23 +319,5 @@
 
     </main>
 
-    <script>
-        const usuario = JSON.parse(sessionStorage.getItem('usuario') || 'null');
-
-        if (!usuario) {
-            window.location.href = 'index.html';
-        } else {
-            document.getElementById('saudacao').textContent = 'Olá, ' + usuario.nome + '!';
-
-            fetch('api/estante_stats.php?usuario=' + usuario.codusuario)
-                .then(r => r.json())
-                .then(data => {
-                    document.getElementById('stat-livros').textContent  = data.total_livros;
-                    document.getElementById('stat-matches').textContent = data.matches;
-                    document.getElementById('stat-genero').textContent  = data.genero_favorito;
-                })
-                .catch(() => {});
-        }
-    </script>
 </body>
 </html>
