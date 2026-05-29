@@ -309,6 +309,38 @@
         margin-top: 40px;
         display: none;
       }
+
+      /* ── FORM MANUAL ── */
+      .btn-manual {
+        height: 48px; padding: 0 20px; border-radius: 30px;
+        background: #ede9d3; border: none; font-family: 'Quicksand';
+        font-size: 13px; font-weight: bold; color: #701d1c;
+        cursor: pointer; white-space: nowrap; transition: 0.2s;
+        flex-shrink: 0;
+      }
+      .btn-manual:hover { background: #d4cdb8; }
+      .btn-manual.ativo { background: #701d1c; color: #fff; }
+      .form-manual {
+        background: #ede9d3; border-radius: 16px; padding: 24px;
+        margin-bottom: 24px; display: none;
+      }
+      .form-manual.visivel { display: block; }
+      .form-manual h3 { font-family: 'Radiant Charisma'; font-size: 20px; color: #701d1c; margin-bottom: 16px; }
+      .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+      .form-field label { font-size: 11px; font-weight: bold; letter-spacing: 1px; color: #701d1c; display: block; margin-bottom: 4px; }
+      .form-field input, .form-field select {
+        width: 100%; height: 40px; background: #fffdf3; border: none;
+        border-radius: 20px; padding: 0 14px; font-family: 'Quicksand';
+        font-size: 13px; outline: none; color: #2c2c2c;
+      }
+      .form-destino { display: flex; gap: 12px; margin-bottom: 16px; }
+      .form-destino label { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
+      .form-manual-btn {
+        width: 100%; height: 44px; background: #701d1c; color: #fff;
+        border: none; border-radius: 30px; font-family: 'Quicksand';
+        font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.2s;
+      }
+      .form-manual-btn:hover { background: #5a1615; }
     </style>
 </head>
 <body>
@@ -325,15 +357,18 @@
     <span class="rotulo-nav">PRINCIPAL</span>
     <a class="item-nav" href="estante.html">📚 Minha Estante</a>
     <a class="item-nav ativo" href="adicionarlivro.html">🔍 Adicionar Livro</a>
-    <a class="item-nav" href="descobrir.html">🔍 Descobrir Livros</a>
+    <a class="item-nav" href="descobrir.html">🔎 Descobrir Livros</a>
     <a class="item-nav" href="curtidas.html"> 💕 Curtidas</a>
     <a class="item-nav" href="mensagens.html">💬 Mensagens <span class="notificacao">3</span></a>
     <a class="item-nav" href="configuracao.html">⚙️ Configurações</a>
 
-    <span class="rotulo-nav">ESTANTES</span>
+    <span class="rotulo-nav">SUAS LISTAS</span>
     <a class="item-nav" href="matches.html">❤️ Matches</a>
     <a class="item-nav" href="troca.html">✅ Trocas</a>
     <a class="item-nav" href="queroler.html">🛒 Quero ler</a>
+
+    <span class="rotulo-nav">CONTA</span>
+    <a class="item-nav" href="#" onclick="logout()">🚪 Sair</a>
   </aside>
 
   <!-- CONTEÚDO -->
@@ -342,6 +377,50 @@
 
     <div class="busca-wrap">
       <input class="busca-input" type="text" id="campoBusca" placeholder="Digite o título ou autor...">
+      <button class="btn-manual" id="btnManual" onclick="toggleManual()">📝 Manual</button>
+    </div>
+
+    <!-- FORMULÁRIO DE CADASTRO MANUAL -->
+    <div class="form-manual" id="formManual">
+      <h3>Cadastro Manual</h3>
+      <div class="form-grid">
+        <div class="form-field" style="grid-column:1/-1;">
+          <label>TÍTULO *</label>
+          <input id="mTitulo" type="text" placeholder="Título do livro">
+        </div>
+        <div class="form-field">
+          <label>AUTOR</label>
+          <input id="mAutor" type="text" placeholder="Nome do autor">
+        </div>
+        <div class="form-field">
+          <label>ANO</label>
+          <input id="mAno" type="number" placeholder="Ex: 2020">
+        </div>
+        <div class="form-field">
+          <label>GÊNERO</label>
+          <select id="mGenero">
+            <option value="">— Selecione —</option>
+            <option>Ficção</option><option>Fantasia</option><option>Ficção Científica</option>
+            <option>Romance</option><option>Terror</option><option>Suspense</option>
+            <option>Aventura</option><option>Biografia</option><option>Autoajuda</option>
+            <option>Clássicos</option><option>HQ/Mangás</option><option>Não-Ficção</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>EDITORA</label>
+          <input id="mEditora" type="text" placeholder="Editora">
+        </div>
+        <div class="form-field" style="grid-column:1/-1;">
+          <label>URL DA CAPA <span style="font-weight:normal;color:#a6a6a6;">(opcional)</span></label>
+          <input id="mFoto" type="url" placeholder="https://...">
+        </div>
+      </div>
+      <div class="form-destino">
+        <label><input type="radio" name="mDestino" value="troca" checked> 🔄 Troca</label>
+        <label><input type="radio" name="mDestino" value="queroler"> 📚 Quero Ler</label>
+      </div>
+      <div id="erroManual" style="color:#b33a3a;font-size:13px;margin-bottom:10px;display:none;"></div>
+      <button class="form-manual-btn" onclick="cadastrarManual()">Adicionar à Estante</button>
     </div>
 
     <div class="loading" id="loading">🔍 Buscando livros...</div>
@@ -360,32 +439,23 @@
 
   <script>
     let paginaAtual = 1;
-    const porPagina = 6;
+    const porPagina = 4;
     let termoBusca = '';
     let timerBusca = null;
     let menuAberto = null;
 
-    /* ════════════════════════════════════════
-       NOVO — helpers de localStorage
-    ════════════════════════════════════════ */
-    const CHAVE_QUERO_LER = 'bm_queroler';
-    const CHAVE_TROCA     = 'bm_troca';
+    const usuario = JSON.parse(sessionStorage.getItem('usuario'));
+    if (!usuario?.codusuario) window.location.href = 'index.html';
 
-    function lerEstante(chave) {
-      try { return JSON.parse(localStorage.getItem(chave)) || []; }
-      catch { return []; }
+    function logout() {
+      sessionStorage.removeItem('usuario');
+      window.location.href = 'index.html';
     }
 
-    function salvarNaEstante(chave, dadosLivro) {
-      const lista = lerEstante(chave);
-      if (!lista.some(l => l.titulo === dadosLivro.titulo)) {
-        lista.push(dadosLivro);
-        localStorage.setItem(chave, JSON.stringify(lista));
-      }
-    }
+    const adicionados = new Set();
 
-    function jaAdicionado(titulo, chave) {
-      return lerEstante(chave).some(l => l.titulo === titulo);
+    function jaAdicionado(titulo, estante) {
+      return adicionados.has(`${titulo}:${estante}`);
     }
     /* ════════════════════════════════════════ */
 
@@ -490,6 +560,15 @@
         document.getElementById('btnProxima').disabled  = paginaAtual >= totalPaginas;
         paginacao.style.display = 'flex';
 
+        // Cria placeholders para preservar a ordem enquanto as promises resolvem
+        const placeholders = dados.docs.map(() => {
+          const ph = document.createElement('div');
+          ph.className = 'livro-card';
+          ph.style.cssText = 'min-height:140px;opacity:0.4;';
+          lista.appendChild(ph);
+          return ph;
+        });
+
         // ── busca detalhes do work em paralelo para cada livro (original mantido) ──
         const promises = dados.docs.map(async (livro, index) => {
           const titulo  = livro.title || 'Título desconhecido';
@@ -526,18 +605,16 @@
             } catch (_) { /* mantém valores padrão */ }
           }
 
-          // NOVO: objeto completo para persistir no localStorage
-          const dadosLivro = { titulo, autor, genero, ano, capaUrl, cor: '#c0b090', status: 'disponivel' };
+        const dadosLivro = { titulo, autor, genero, ano, capaUrl, cor: '#c0b090', status: 'disponivel' };
 
-          // NOVO: checa se já foi adicionado a cada estante (para refletir estado ao paginar)
-          const emQL = jaAdicionado(titulo, CHAVE_QUERO_LER);
-          const emTR = jaAdicionado(titulo, CHAVE_TROCA);
+          const emQL = jaAdicionado(titulo, 'queroler');
+          const emTR = jaAdicionado(titulo, 'troca');
 
           const cardId = `card-${index}`;
           const card = document.createElement('div');
           card.className = 'livro-card';
           card.id = cardId;
-          card.dataset.livro = JSON.stringify(dadosLivro); // NOVO
+          card.dataset.livro = JSON.stringify(dadosLivro);
 
           card.innerHTML = `
             ${capaUrl
@@ -556,7 +633,7 @@
             <button
               class="btn-adicionar${(emQL && emTR) ? ' adicionado' : ''}"
               id="btn-${cardId}"
-              onclick="abrirMenu('${cardId}')"
+              onclick="event.stopPropagation(); abrirMenu('${cardId}')"
               ${(emQL && emTR) ? 'disabled title="Já adicionado a todas as estantes"' : ''}>
               ${(emQL && emTR) ? '✓' : '+'}
             </button>
@@ -577,7 +654,8 @@
             </div>
           `;
 
-          lista.appendChild(card);
+          // Substitui o placeholder na posição correta
+          placeholders[index].replaceWith(card);
         });
 
         await Promise.all(promises);
@@ -603,47 +681,56 @@
       menuAberto = menu.classList.contains('aberto') ? `menu-${cardId}` : null;
     }
 
-    /* ════════════════════════════════════════
-       NOVO — substitui a função adicionarLivro original
-       (que só mostrava toast) por uma que também persiste
-    ════════════════════════════════════════ */
-    function adicionarLivro(cardId, estante) {
+    async function adicionarLivro(cardId, estante) {
       const card      = document.getElementById(cardId);
       const dados     = JSON.parse(card.dataset.livro);
-      const chave     = estante === 'queroler' ? CHAVE_QUERO_LER : CHAVE_TROCA;
       const nomeLabel = estante === 'queroler' ? 'Quero Ler' : 'Troca';
       const opcaoId   = estante === 'queroler' ? `opcao-ql-${cardId}` : `opcao-tr-${cardId}`;
       const emoji     = estante === 'queroler' ? '📚' : '🔄';
 
-      if (jaAdicionado(dados.titulo, chave)) return;
+      if (jaAdicionado(dados.titulo, estante)) return;
 
-      // persiste no localStorage
-      salvarNaEstante(chave, dados);
+      try {
+        await fetch('api/adicionar_livro.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            usuario: usuario.codusuario,
+            titulo: dados.titulo,
+            autor: dados.autor,
+            genero: dados.genero,
+            ano: dados.ano,
+            foto: dados.capaUrl,
+            destino: estante,
+          }),
+        });
 
-      // atualiza visual da opção
-      const opcao = document.getElementById(opcaoId);
-      opcao.classList.add('ja-adicionado');
-      opcao.setAttribute('onclick', 'void(0)');
-      opcao.textContent = `${emoji} ${nomeLabel} ✓`;
+        adicionados.add(`${dados.titulo}:${estante}`);
 
-      // se ambas adicionadas, muda botão + para ✓ verde
-      const emQL = jaAdicionado(dados.titulo, CHAVE_QUERO_LER);
-      const emTR = jaAdicionado(dados.titulo, CHAVE_TROCA);
-      if (emQL && emTR) {
-        const btn = document.getElementById(`btn-${cardId}`);
-        btn.classList.add('adicionado');
-        btn.disabled = true;
-        btn.title = 'Já adicionado a todas as estantes';
-        btn.textContent = '✓';
+        const opcao = document.getElementById(opcaoId);
+        opcao.classList.add('ja-adicionado');
+        opcao.setAttribute('onclick', 'void(0)');
+        opcao.textContent = `${emoji} ${nomeLabel} ✓`;
+
+        const emQL = jaAdicionado(dados.titulo, 'queroler');
+        const emTR = jaAdicionado(dados.titulo, 'troca');
+        if (emQL && emTR) {
+          const btn = document.getElementById(`btn-${cardId}`);
+          btn.classList.add('adicionado');
+          btn.disabled = true;
+          btn.title = 'Já adicionado a todas as estantes';
+          btn.textContent = '✓';
+        }
+
+        if (menuAberto) {
+          document.getElementById(menuAberto).classList.remove('aberto');
+          menuAberto = null;
+        }
+
+        mostrarToast(`✅ "${dados.titulo}" adicionado à estante ${nomeLabel}!`);
+      } catch (e) {
+        mostrarToast('Erro ao adicionar livro.');
       }
-
-      // fecha menu
-      if (menuAberto) {
-        document.getElementById(menuAberto).classList.remove('aberto');
-        menuAberto = null;
-      }
-
-      mostrarToast(`✅ "${dados.titulo}" adicionado à estante ${nomeLabel}!`);
     }
 
     function mostrarToast(mensagem) {
@@ -659,6 +746,58 @@
         menuAberto = null;
       }
     });
+
+    function toggleManual() {
+      const form = document.getElementById('formManual');
+      const btn  = document.getElementById('btnManual');
+      const aberto = form.classList.toggle('visivel');
+      btn.classList.toggle('ativo', aberto);
+      if (aberto) {
+        document.getElementById('campoBusca').value = '';
+        document.getElementById('listaLivros').innerHTML = '';
+        document.getElementById('paginacao').style.display = 'none';
+      }
+    }
+
+    async function cadastrarManual() {
+      const titulo  = document.getElementById('mTitulo').value.trim();
+      const autor   = document.getElementById('mAutor').value.trim();
+      const ano     = document.getElementById('mAno').value.trim();
+      const genero  = document.getElementById('mGenero').value;
+      const editora = document.getElementById('mEditora').value.trim();
+      const foto    = document.getElementById('mFoto').value.trim();
+      const destino = document.querySelector('input[name="mDestino"]:checked').value;
+      const erroEl  = document.getElementById('erroManual');
+      erroEl.style.display = 'none';
+
+      if (!titulo) {
+        erroEl.textContent = 'O título é obrigatório.';
+        erroEl.style.display = 'block';
+        return;
+      }
+
+      try {
+        const resp = await fetch('api/adicionar_livro.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usuario: usuario.codusuario, titulo, autor, genero, editora, ano, foto, destino }),
+        });
+        const dados = await resp.json();
+
+        if (dados.sucesso || dados.estante_cod) {
+          adicionados.add(`${titulo}:${destino}`);
+          mostrarToast(`✅ "${titulo}" adicionado à estante!`);
+          ['mTitulo','mAutor','mAno','mEditora','mFoto'].forEach(id => document.getElementById(id).value = '');
+          document.getElementById('mGenero').value = '';
+        } else {
+          erroEl.textContent = dados.erro || 'Erro ao adicionar livro.';
+          erroEl.style.display = 'block';
+        }
+      } catch (e) {
+        erroEl.textContent = 'Erro ao conectar com o servidor.';
+        erroEl.style.display = 'block';
+      }
+    }
   </script>
 
 </body>

@@ -102,6 +102,9 @@
     <a class="item-nav ativo" href="matches.html">❤️ Matches</a>
     <a class="item-nav" href="troca.html">✅ Trocas</a>
     <a class="item-nav" href="queroler.html">🛒 Quero Ler</a>
+
+    <span class="rotulo-nav">CONTA</span>
+    <a class="item-nav" href="#" onclick="logout()">🚪 Sair</a>
   </aside>
 
   <div class="conteudo">
@@ -114,34 +117,53 @@
   </div>
 
   <script>
-    const livros = [
-      { titulo: "Assassin's Creed", autor: 'Oliver Bowden', cor: '#3a3a5e', capa: null, match: 'Mariana Costa' },
-      { titulo: 'Rangers', autor: 'John Flanagan', cor: '#4a6741', capa: null, match: 'Pedro Alves' },
-      { titulo: 'Sherlock Holmes', autor: 'Arthur Conan Doyle', cor: '#2c2c2c', capa: null, match: 'Julia Ramos' },
-      { titulo: 'Diário de um Banana', autor: 'Jeff Kinney', cor: '#c0392b', capa: null, match: 'Rafael Lima' },
-      { titulo: 'O Poder do Hábito', autor: 'Charles Duhigg', cor: '#e67e22', capa: null, match: 'Camila Souza' },
-      { titulo: 'Sapiens', autor: 'Yuval Noah Harari', cor: '#5d6d7e', capa: null, match: 'Thiago Martins' },
-      { titulo: 'A Bíblia Sagrada', autor: 'Diversos Autores', cor: '#1a1a2e', capa: null, match: 'Ana Ferreira' },
-      { titulo: 'Duna', autor: 'Frank Herbert', cor: '#6b4226', capa: null, match: 'Lucas Pereira' },
-    ];
+    const usuario = JSON.parse(sessionStorage.getItem('usuario'));
+    if (!usuario?.codusuario) window.location.href = 'index.html';
 
-    const grade = document.getElementById('grade');
-    livros.forEach(l => {
-      const iniciais = l.match.split(' ').map(n => n[0]).join('').slice(0,2);
-      grade.innerHTML += `
-        <div class="card-livro">
-          <div class="card-capa-placeholder" style="background:${l.cor};">📖</div>
-          <div class="card-info">
-            <div class="card-titulo">${l.titulo}</div>
-            <div class="card-autor">${l.autor}</div>
-            <div class="card-match-row">
-              <div class="avatar">${iniciais}</div>
-              <span class="match-nome">${l.match}</span>
-            </div>
-            <span class="tag-match">❤️ Match</span>
-          </div>
-        </div>`;
-    });
+    function logout() {
+      sessionStorage.removeItem('usuario');
+      window.location.href = 'index.html';
+    }
+
+    async function carregarMatches() {
+      const grade = document.getElementById('grade');
+      try {
+        const resp  = await fetch(`api/matches.php?usuario=${usuario.codusuario}`);
+        const dados = await resp.json();
+        const lista = dados.matches || [];
+
+        document.querySelector('.badge-total').textContent = `${lista.length} livro${lista.length !== 1 ? 's' : ''}`;
+
+        if (!lista.length) {
+          grade.innerHTML = '<p style="color:#a6a6a6;text-align:center;grid-column:1/-1;padding:40px 0;">Nenhum match ainda. Descubra livros!</p>';
+          return;
+        }
+
+        lista.forEach(m => {
+          const iniciais = m.outro_usuario_nome.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+          const capaHtml = m.livro_foto
+            ? `<img class="card-capa" src="${m.livro_foto}" alt="${m.livro_titulo}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="card-capa-placeholder" style="display:none;">📖</div>`
+            : `<div class="card-capa-placeholder">📖</div>`;
+          grade.innerHTML += `
+            <div class="card-livro">
+              ${capaHtml}
+              <div class="card-info">
+                <div class="card-titulo">${m.livro_titulo}</div>
+                <div class="card-autor">${m.livro_genero || '—'}</div>
+                <div class="card-match-row">
+                  <div class="avatar">${iniciais}</div>
+                  <span class="match-nome">${m.outro_usuario_nome}</span>
+                </div>
+                <span class="tag-match">❤️ Match</span>
+              </div>
+            </div>`;
+        });
+      } catch (e) {
+        grade.innerHTML = '<p style="color:#a6a6a6;text-align:center;grid-column:1/-1;padding:40px 0;">Erro ao carregar matches.</p>';
+      }
+    }
+
+    carregarMatches();
   </script>
 </body>
 </html>

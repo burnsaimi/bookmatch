@@ -281,6 +281,9 @@
     <a class="item-nav" href="matches.html">❤️ Matches</a>
     <a class="item-nav" href="troca.html">✅ Trocas</a>
     <a class="item-nav" href="queroler.html">🛒 Quero ler</a>
+
+    <span class="rotulo-nav">CONTA</span>
+    <a class="item-nav" href="#" onclick="logout()">🚪 Sair</a>
   </aside>
 
 
@@ -350,61 +353,41 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    const generosDoUsuario = ['Fantasia', 'Ficção', 'Suspense', 'Romance'];
+    const usuario = JSON.parse(sessionStorage.getItem('usuario'));
+    if (!usuario?.codusuario) window.location.href = 'index.html';
 
-    const livros = [
-      {
-        id: 1,
-        titulo: 'A Cabeça do Santo',
-        autor: 'Socorro Acioli',
-        dono: { nome: 'Rafaella Silva', cidade: 'São Paulo, SP', nota: 4.3, trocas: 12 },
-        generos: ['Fantasia', 'Ficção', 'Drama'],
-        estado: 'bom',
-        fotos: [
-          { tipo: 'capa', url: 'https://covers.openlibrary.org/b/id/8739161-L.jpg', label: 'Capa' },
-          { tipo: 'estado', url: null, label: 'Estado 1' },
-        ],
-      },
-      {
-        id: 2,
-        titulo: 'O Senhor dos Anéis',
-        autor: 'J.R.R. Tolkien',
-        dono: { nome: 'Carlos Mendes', cidade: 'Curitiba, PR', nota: 4.8, trocas: 27 },
-        generos: ['Fantasia', 'Aventura', 'Clássico'],
-        estado: 'otimo',
-        fotos: [
-          { tipo: 'capa', url: 'https://covers.openlibrary.org/b/id/9255566-L.jpg', label: 'Capa' },
-          { tipo: 'estado', url: null, label: 'Estado 1' },
-        ],
-      },
-      {
-        id: 3,
-        titulo: 'Duna',
-        autor: 'Frank Herbert',
-        dono: { nome: 'Beatriz Lopes', cidade: 'Belo Horizonte, MG', nota: 3.9, trocas: 5 },
-        generos: ['Ficção Científica', 'Suspense', 'Aventura'],
-        estado: 'usado',
-        fotos: [
-          { tipo: 'capa', url: 'https://covers.openlibrary.org/b/id/8482499-L.jpg', label: 'Capa' },
-          { tipo: 'estado', url: null, label: 'Estado 1' },
-        ],
-      },
-      {
-        id: 4,
-        titulo: 'Harry Potter e a Pedra Filosofal',
-        autor: 'J.K. Rowling',
-        dono: { nome: 'Lucas Ferreira', cidade: 'Porto Alegre, RS', nota: 4.6, trocas: 19 },
-        generos: ['Fantasia', 'Aventura', 'Jovem Adulto'],
-        estado: 'bom',
-        fotos: [
-          { tipo: 'capa', url: 'https://covers.openlibrary.org/b/id/10110415-L.jpg', label: 'Capa' },
-          { tipo: 'estado', url: null, label: 'Estado 1' },
-        ],
-      },
-    ];
+    function logout() {
+      sessionStorage.removeItem('usuario');
+      window.location.href = 'index.html';
+    }
 
+    // Gêneros favoritos do usuário (carregados da sessão ou vazio)
+    const generosDoUsuario = usuario.generos || [];
+
+    let livros = [];
     let indiceAtual = 0, fotoAtual = 0, fotosCard = [];
     let arrastando = false, startX = 0, currentX = 0;
+
+    async function carregarLivros() {
+      try {
+        const resp  = await fetch(`api/descobrir.php?usuario=${usuario.codusuario}`);
+        const dados = await resp.json();
+        livros = (dados.livros || []).map(l => ({
+          estante_cod: l.estante_cod,
+          dono_id:     l.dono_id,
+          titulo:      l.titulo,
+          autor:       '—',
+          dono: { nome: l.dono_nome, cidade: 'Brasil' },
+          generos:     l.genero ? [l.genero] : [],
+          estado:      'bom',
+          fotos:       [{ url: l.foto || null, label: 'Capa' }],
+        }));
+        indiceAtual = 0;
+        renderizarCard(0);
+      } catch (e) {
+        mostrarFimCards();
+      }
+    }
 
     const estadoConfig = {
       otimo:  { classe: 'estado-otimo',  texto: 'Estado: Ótimo — como novo' },
@@ -420,8 +403,8 @@
       fotosCard = [...livro.fotos];
       document.getElementById('donoNome').textContent    = livro.dono.nome;
       document.getElementById('donoCidade').textContent  = `📍 ${livro.dono.cidade}`;
-      document.getElementById('donoNota').textContent    = livro.dono.nota.toFixed(1);
-      document.getElementById('donoTrocas').textContent  = `(${livro.dono.trocas} trocas)`;
+      document.getElementById('donoNota').textContent    = '—';
+      document.getElementById('donoTrocas').textContent  = '';
       document.getElementById('livroTitulo').textContent = livro.titulo;
       document.getElementById('livroAutor').textContent  = livro.autor;
       const row = document.getElementById('generosRow');
@@ -484,13 +467,33 @@
       document.getElementById('setaDir').style.display = v;
     }
 
-    function abrirModalFoto() { document.getElementById('modalFoto').classList.add('aberto'); }
-    function fecharModalFoto() { document.getElementById('modalFoto').classList.remove('aberto'); }
-    function escolherFotoGaleria() { fecharModalFoto(); document.getElementById('inputFoto').click(); }
-
+    function abrirModalFoto() {}
+    function fecharModalFoto() {}
+    function escolherFotoGaleria() {}
 
     function proxLivro() { animarSaida('left'); }
-    function curtirLivro() { animarSaida('right'); mostrarToast(`❤️ Você curtiu "${livros[indiceAtual].titulo}"!`); }
+
+    async function curtirLivro() {
+      const livro = livros[indiceAtual];
+      animarSaida('right');
+      mostrarToast(`❤️ Você curtiu "${livro.titulo}"!`);
+      try {
+        const resp  = await fetch('api/curtir.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            usuario:     usuario.codusuario,
+            estante_cod: livro.estante_cod,
+            dono_id:     livro.dono_id,
+          }),
+        });
+        const dados = await resp.json();
+        if (dados.match) {
+          setTimeout(() => mostrarToast(`🎉 É um Match com ${livro.dono.nome}! Acesse Mensagens.`), 3200);
+        }
+      } catch (e) { /* curtida falhou silenciosamente */ }
+    }
+
     function animarSaida(dir) {
       const card = document.getElementById('cardAtual');
       card.classList.add(dir === 'right' ? 'swipe-right' : 'swipe-left');
@@ -505,7 +508,7 @@
       ['cardAtual', 'cardStack'].forEach(id => document.getElementById(id).style.display = '');
       document.getElementById('acoesDiv').style.display = 'flex';
       document.getElementById('fimCards').style.display = 'none';
-      renderizarCard(0);
+      carregarLivros();
     }
 
     const card = document.getElementById('cardAtual');
@@ -544,7 +547,7 @@
       setTimeout(() => t.classList.remove('visivel'), 3000);
     }
 
-    renderizarCard(0);
+    carregarLivros();
   </script>
 </body>
 </html>

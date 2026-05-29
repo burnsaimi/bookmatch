@@ -252,15 +252,19 @@
 
     <span class="rotulo-nav">PRINCIPAL</span>
     <a class="item-nav" href="estante.html">📚 Minha Estante</a>
+    <a class="item-nav" href="adicionarlivro.html">🔍 Adicionar Livro</a>
     <a class="item-nav" href="descobrir.html">🔎 Descobrir Livros</a>
     <a class="item-nav" href="curtidas.html"> 💕 Curtidas</a>
-    <a class="item-nav" href="mensagens.html">💬 Mensagens <span class="notificacao">3</span></a>
+    <a class="item-nav ativo" href="mensagens.html">💬 Mensagens</a>
     <a class="item-nav" href="configuracao.html">⚙️ Configurações</a>
 
     <span class="rotulo-nav">SUAS LISTAS</span>
-    <a class="item-nav ativo" href="matches.html">❤️ Matches</a>
+    <a class="item-nav" href="matches.html">❤️ Matches</a>
     <a class="item-nav" href="troca.html">✅ Trocas</a>
     <a class="item-nav" href="queroler.html">🛒 Quero Ler</a>
+
+    <span class="rotulo-nav">CONTA</span>
+    <a class="item-nav" href="#" onclick="logout()">🚪 Sair</a>
   </aside>
 
   <!-- CONTEÚDO -->
@@ -307,93 +311,69 @@
   </div>
 
   <script>
-    const eu = { nome: 'João Ferreira', iniciais: 'JF', cor: '#701d1c' };
+    const usuario = JSON.parse(sessionStorage.getItem('usuario'));
+    if (!usuario?.codusuario) window.location.href = 'index.html';
 
-    const conversas = [
-      {
-        id: 1,
-        nome: 'Rafael Campos',
-        iniciais: 'RC',
-        cor: '#e4568b',
-        status: 'Online agora',
-        online: true,
-        hora: '14:32',
-        preview: 'Você já leu Hyperion? É incrível!',
-        naoLidas: 3,
-        match: { titulo: 'Você e Rafael têm 3 livros em comum' },
-        mensagens: [
-          { de: 'outro', texto: 'Oi! Vi que você ama Duna. Qual parte da saga você mais gostou?' },
-          { de: 'eu', texto: 'Oi Rafael! Com certeza o primeiro livro ainda é meu favorito, mas Duna Messias tem uma profundidade incrível!' },
-          { de: 'outro', texto: 'Concordo! E o que você acha da adaptação do Denis Villeneuve? Eu amei como ele capturou o Arrakis' },
-          { de: 'eu', texto: 'Foi linda! Mas o livro ainda ganha com folga. Tem tanto detalhe que não dá pra colocar em 3 horas de filme rsrs' },
-          { de: 'outro', tipo: 'recomendacao', livro: 'Hyperion', autor: 'Dan Simmons', genero: 'Ficção Científica', ano: '1989' },
-        ]
-      },
-      {
-        id: 2,
-        nome: 'Marina Costa',
-        iniciais: 'MC',
-        cor: '#6b7f46',
-        status: 'Visto ontem',
-        online: false,
-        hora: 'ontem',
-        preview: 'Obrigado pela recomendação...',
-        naoLidas: 3,
-        match: { titulo: 'Você e Marina têm 2 livros em comum' },
-        mensagens: [
-          { de: 'eu', texto: 'Oi Marina! Vi que você também ama Fantasia. Já leu O Nome do Vento?' },
-          { de: 'outro', texto: 'Ainda não! Está na minha lista faz tempo. Vale a pena?' },
-          { de: 'eu', texto: 'Demais! É uma das melhores séries que li. O Rothfuss escreve de forma muito poética.' },
-          { de: 'outro', texto: 'Obrigado pela recomendação, vou começar essa semana!' },
-        ]
-      },
-      {
-        id: 3,
-        nome: 'Julia Santos',
-        iniciais: 'JS',
-        cor: '#3a3a5e',
-        status: 'Visto quarta',
-        online: false,
-        hora: 'qua',
-        preview: 'Você: Adorei o final também',
-        naoLidas: 0,
-        match: { titulo: 'Você e Julia têm 4 livros em comum' },
-        mensagens: [
-          { de: 'outro', texto: 'Acabei de terminar Corte de Espinhos e Rosas! Que final!' },
-          { de: 'eu', texto: 'Adorei o final também! Já vai começar o segundo?' },
-          { de: 'outro', texto: 'Já comprei rsrs. Não consigo parar!' },
-        ]
-      },
-    ];
+    function logout() {
+      sessionStorage.removeItem('usuario');
+      window.location.href = 'index.html';
+    }
 
+    function corPorNome(nome) {
+      const cores = ['#701d1c','#e4568b','#6b7f46','#3a3a5e','#2a6e8f','#8b4513','#6a0dad','#2e7d32','#c05621','#4a4a8a'];
+      let h = 0;
+      for (let i = 0; i < nome.length; i++) h = (h * 31 + nome.charCodeAt(i)) & 0xffffffff;
+      return cores[Math.abs(h) % cores.length];
+    }
+
+    function iniciaisPorNome(nome) {
+      return nome.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+    }
+
+    let conversas = [];
     let conversaAtiva = null;
 
-    // Renderiza avatares de novos matches
-    const matchesRow = document.getElementById('matchesRow');
-    conversas.filter(c => c.naoLidas > 0).forEach(c => {
-      matchesRow.innerHTML += `
-        <div class="avatar-match" style="background:${c.cor};" onclick="abrirConversa(${c.id})" title="${c.nome}">
-          ${c.iniciais}
-        </div>`;
-    });
+    async function carregarConversas() {
+      try {
+        const resp = await fetch(`api/conversas.php?usuario=${usuario.codusuario}`);
+        const dados = await resp.json();
+        conversas = dados.conversas || [];
+        renderizarMatchesRow();
+        renderizarLista();
+      } catch (e) {
+        document.getElementById('listaConversas').innerHTML = '<p style="color:#a6a6a6;text-align:center;padding:20px;">Erro ao carregar conversas.</p>';
+      }
+    }
 
-    // Renderiza lista de conversas
+    function renderizarMatchesRow() {
+      const row = document.getElementById('matchesRow');
+      row.innerHTML = '';
+      conversas.filter(c => c.nao_lidas > 0).forEach(c => {
+        const cor = corPorNome(c.outro_nome);
+        row.innerHTML += `
+          <div class="avatar-match" style="background:${cor};" onclick="abrirConversa(${c.outro_id})" title="${c.outro_nome}">
+            ${iniciaisPorNome(c.outro_nome)}
+          </div>`;
+      });
+    }
+
     function renderizarLista(filtro = '') {
       const lista = document.getElementById('listaConversas');
       lista.innerHTML = '';
       conversas
-        .filter(c => c.nome.toLowerCase().includes(filtro.toLowerCase()))
+        .filter(c => c.outro_nome.toLowerCase().includes(filtro.toLowerCase()))
         .forEach(c => {
+          const cor = corPorNome(c.outro_nome);
           lista.innerHTML += `
-            <div class="item-conversa${conversaAtiva === c.id ? ' ativa' : ''}" onclick="abrirConversa(${c.id})">
-              <div class="avatar-conversa" style="background:${c.cor};">${c.iniciais}</div>
+            <div class="item-conversa${conversaAtiva === c.outro_id ? ' ativa' : ''}" onclick="abrirConversa(${c.outro_id})">
+              <div class="avatar-conversa" style="background:${cor};">${iniciaisPorNome(c.outro_nome)}</div>
               <div class="conversa-info">
-                <div class="conversa-nome">${c.nome}</div>
-                <div class="conversa-preview">${c.preview}</div>
+                <div class="conversa-nome">${c.outro_nome}</div>
+                <div class="conversa-preview">${c.ultima_mensagem || 'Deram match!'}</div>
               </div>
               <div class="conversa-meta">
-                <span class="conversa-hora">${c.hora}</span>
-                ${c.naoLidas > 0 ? `<span class="badge-msg">${c.naoLidas}</span>` : ''}
+                <span class="conversa-hora">${c.ultima_data ? c.ultima_data.slice(11,16) : ''}</span>
+                ${c.nao_lidas > 0 ? `<span class="badge-msg">${c.nao_lidas}</span>` : ''}
               </div>
             </div>`;
         });
@@ -403,86 +383,80 @@
       renderizarLista(document.getElementById('buscaInput').value);
     }
 
-    function abrirConversa(id) {
-      conversaAtiva = id;
-      const c = conversas.find(x => x.id === id);
-      c.naoLidas = 0;
+    async function abrirConversa(outroId) {
+      conversaAtiva = outroId;
+      const c = conversas.find(x => x.outro_id == outroId);
+      if (c) c.nao_lidas = 0;
 
-      // Atualiza header
-      document.getElementById('chatHeaderAvatar').style.background = c.cor;
-      document.getElementById('chatHeaderAvatar').textContent = c.iniciais;
-      document.getElementById('chatHeaderNome').textContent = c.nome;
-      document.getElementById('chatHeaderStatus').textContent = (c.online ? '🟢 ' : '') + c.status;
-      document.getElementById('chatHeaderStatus').style.color = c.online ? '#4caf50' : '#a6a6a6';
+      const cor = c ? corPorNome(c.outro_nome) : '#701d1c';
+      const iniciais = c ? iniciaisPorNome(c.outro_nome) : '?';
+      const nome = c ? c.outro_nome : '';
 
-      // Renderiza mensagens
+      document.getElementById('chatHeaderAvatar').style.background = cor;
+      document.getElementById('chatHeaderAvatar').textContent = iniciais;
+      document.getElementById('chatHeaderNome').textContent = nome;
+      document.getElementById('chatHeaderStatus').textContent = 'Match confirmado';
+      document.getElementById('chatHeaderStatus').style.color = '#e6a921';
+
       const area = document.getElementById('chatMensagens');
-      area.innerHTML = '';
+      area.innerHTML = '<div class="balao-match"><div class="match-titulo">🎉 Vocês deram match!</div></div>';
 
-      // Balão de match
-      area.innerHTML += `
-        <div class="balao-match">
-          <div class="match-titulo">🎉 Vocês deram match!</div>
-          <div class="match-sub">${c.match.titulo}</div>
-        </div>`;
-
-      c.mensagens.forEach(m => {
-        if (m.tipo === 'recomendacao') {
-          area.innerHTML += `
-            <div class="msg-row">
-              <div class="msg-avatar" style="background:${c.cor};">${c.iniciais}</div>
-              <div class="balao-recomendacao">
-                <div class="rec-label">📖 Recomendação: ${m.livro}</div>
-                <div class="rec-titulo">${m.livro}</div>
-                <div class="rec-meta">${m.autor} · ${m.genero} · ${m.ano}</div>
-              </div>
-            </div>`;
-        } else if (m.de === 'outro') {
-          area.innerHTML += `
-            <div class="msg-row">
-              <div class="msg-avatar" style="background:${c.cor};">${c.iniciais}</div>
-              <div class="balao recebida">${m.texto}</div>
-            </div>`;
-        } else {
-          area.innerHTML += `
-            <div class="msg-row enviada">
-              <div class="msg-avatar" style="background:${eu.cor};">${eu.iniciais}</div>
-              <div class="balao enviada">${m.texto}</div>
-            </div>`;
-        }
-      });
-
-      // Exibe chat
+      // Abre o painel imediatamente, sem esperar o fetch
       document.getElementById('chatVazio').style.display = 'none';
       document.getElementById('chatAberto').style.display = 'flex';
-
-      // Scroll para o fim
-      setTimeout(() => { area.scrollTop = area.scrollHeight; }, 50);
-
       renderizarLista(document.getElementById('buscaInput').value);
+
+      try {
+        const resp = await fetch(`api/mensagens.php?usuario=${usuario.codusuario}&outro=${outroId}`);
+        const dados = await resp.json();
+        (dados.mensagens || []).forEach(m => {
+          if (m.remetente == outroId) {
+            area.innerHTML += `
+              <div class="msg-row">
+                <div class="msg-avatar" style="background:${cor};">${iniciais}</div>
+                <div class="balao recebida">${m.mensagem}</div>
+              </div>`;
+          } else {
+            area.innerHTML += `
+              <div class="msg-row enviada">
+                <div class="msg-avatar" style="background:#701d1c;">${iniciaisPorNome(usuario.nome)}</div>
+                <div class="balao enviada">${m.mensagem}</div>
+              </div>`;
+          }
+        });
+      } catch (e) { /* mantém o balão de match */ }
+
+      setTimeout(() => { area.scrollTop = area.scrollHeight; }, 50);
     }
 
-    function enviarMensagem() {
+    async function enviarMensagem() {
       const input = document.getElementById('chatInput');
       const texto = input.value.trim();
       if (!texto || !conversaAtiva) return;
-
-      const c = conversas.find(x => x.id === conversaAtiva);
-      c.mensagens.push({ de: 'eu', texto });
-      c.preview = `Você: ${texto}`;
       input.value = '';
 
       const area = document.getElementById('chatMensagens');
       area.innerHTML += `
         <div class="msg-row enviada">
-          <div class="msg-avatar" style="background:${eu.cor};">${eu.iniciais}</div>
+          <div class="msg-avatar" style="background:#701d1c;">${iniciaisPorNome(usuario.nome)}</div>
           <div class="balao enviada">${texto}</div>
         </div>`;
       area.scrollTop = area.scrollHeight;
+
+      const c = conversas.find(x => x.outro_id == conversaAtiva);
+      if (c) { c.ultima_mensagem = `Você: ${texto}`; c.ultima_data = new Date().toISOString(); }
       renderizarLista(document.getElementById('buscaInput').value);
+
+      try {
+        await fetch('api/mensagens.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ remetente: usuario.codusuario, destinatario: conversaAtiva, mensagem: texto }),
+        });
+      } catch (e) { /* mensagem já exibida no UI */ }
     }
 
-    renderizarLista();
+    carregarConversas();
   </script>
 </body>
 </html>

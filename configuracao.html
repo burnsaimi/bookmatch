@@ -107,6 +107,20 @@
     /* TOAST */
     .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background-color: #701d1c; color: white; padding: 12px 28px; border-radius: 30px; font-size: 14px; font-family: 'Quicksand'; font-weight: 700; opacity: 0; transition: opacity 0.3s; z-index: 999; pointer-events: none; }
     .toast.visivel { opacity: 1; }
+
+    /* MODAL */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; display: none; align-items: center; justify-content: center; }
+    .modal-overlay.aberto { display: flex; }
+    .modal-box { background: #fffdf3; border-radius: 20px; padding: 32px; width: 420px; max-width: 95vw; }
+    .modal-titulo { font-family: 'Radiant Charisma'; font-size: 26px; color: #701d1c; margin-bottom: 20px; }
+    .modal-label { font-size: 11px; font-weight: bold; letter-spacing: 1px; color: #701d1c; display: block; margin-bottom: 4px; }
+    .modal-input { width: 100%; height: 42px; background: #ede9d3; border: none; border-radius: 30px; padding: 0 18px; font-family: 'Quicksand'; font-size: 14px; outline: none; margin-bottom: 14px; }
+    .modal-erro { color: #b33a3a; font-size: 13px; margin-bottom: 10px; display: none; text-align: center; }
+    .modal-btns { display: flex; gap: 10px; margin-top: 6px; }
+    .modal-btn { flex: 1; height: 42px; border: none; border-radius: 30px; font-family: 'Quicksand'; font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    .modal-btn.salvar { background: #701d1c; color: #fff; }
+    .modal-btn.salvar:hover { background: #5a1615; }
+    .modal-btn.cancelar { background: #ede9d3; color: #a6a6a6; }
   </style>
 </head>
 <body>
@@ -119,7 +133,8 @@
 
     <span class="rotulo-nav">PRINCIPAL</span>
     <a class="item-nav" href="estante.html">📚 Minha Estante</a>
-    <a class="item-nav" href="descobrir.html">🔍 Descobrir Livros</a>
+    <a class="item-nav" href="adicionarlivro.html">🔍 Adicionar Livro</a>
+    <a class="item-nav" href="descobrir.html">🔎 Descobrir Livros</a>
     <a class="item-nav" href="curtidas.html">💕 Curtidas</a>
     <a class="item-nav" href="mensagens.html">💬 Mensagens <span class="notificacao">3</span></a>
     <a class="item-nav ativo" href="configuracao.html">⚙️ Configurações</a>
@@ -128,6 +143,9 @@
     <a class="item-nav" href="matches.html">❤️ Matches</a>
     <a class="item-nav" href="troca.html">✅ Trocas</a>
     <a class="item-nav" href="queroler.html">🛒 Quero ler</a>
+
+    <span class="rotulo-nav">CONTA</span>
+    <a class="item-nav" href="#" onclick="logout()">🚪 Sair</a>
   </aside>
 
   <!-- CONTEÚDO -->
@@ -151,10 +169,10 @@
         <div class="perfil-topo">
           <div class="avatar-perfil">👤</div>
           <div>
-            <div class="perfil-nome">Luis Henrique</div>
-            <div class="perfil-sub">Frederico Westphalen, RS &nbsp;·&nbsp; 38 livros &nbsp;·&nbsp; ⭐ 5,0</div>
+            <div class="perfil-nome" id="perfilNome">—</div>
+            <div class="perfil-sub" id="perfilSub">Carregando...</div>
           </div>
-          <button class="btn-editar" onclick="mostrarToast('✏️ Abrindo editor de perfil…')">✏️ Editar perfil</button>
+          <button class="btn-editar" onclick="abrirModal()">✏️ Editar perfil</button>
         </div>
 
         <div class="grid-config">
@@ -168,7 +186,7 @@
                 <div class="toggle-sub">Outros usuários podem ver seus livros</div>
               </div>
               <label class="toggle-wrap">
-                <input type="checkbox" checked onchange="salvarToggle('estante', this.checked)">
+                <input type="checkbox" id="toggleEstante" onchange="salvarConfig('estante_publica', this.checked ? 1 : 0)">
                 <div class="toggle-track"></div>
                 <div class="toggle-thumb"></div>
               </label>
@@ -180,7 +198,7 @@
                 <div class="toggle-sub">Exibe a sua cidade no perfil</div>
               </div>
               <label class="toggle-wrap">
-                <input type="checkbox" checked onchange="salvarToggle('localizacao', this.checked)">
+                <input type="checkbox" id="toggleLocalizacao" onchange="salvarConfig('mostrar_localizacao', this.checked ? 1 : 0)">
                 <div class="toggle-track"></div>
                 <div class="toggle-thumb"></div>
               </label>
@@ -192,7 +210,7 @@
                 <div class="toggle-sub">Exibe a sua nota média de leitor</div>
               </div>
               <label class="toggle-wrap">
-                <input type="checkbox" onchange="salvarToggle('avaliacao', this.checked)">
+                <input type="checkbox" id="toggleAvaliacao" onchange="salvarConfig('mostrar_avaliacao', this.checked ? 1 : 0)">
                 <div class="toggle-track"></div>
                 <div class="toggle-thumb"></div>
               </label>
@@ -220,7 +238,7 @@
 
             <div class="linha-select">
               <span class="select-label">Ordenar por</span>
-              <select class="select-config" onchange="mostrarToast('✅ Preferência salva!')">
+              <select class="select-config" id="selectOrdenar" onchange="salvarConfig('ordenar_por', this.value)">
                 <option>Compatibilidade</option>
                 <option>Distância</option>
                 <option>Avaliação</option>
@@ -271,7 +289,7 @@
             <div class="conta-item-nome">Exportar meus dados</div>
             <div class="conta-item-desc">Baixe toda sua estante em CSV</div>
           </div>
-          <button class="btn-acao" onclick="mostrarToast('📥 Exportação iniciada!')">Exportar</button>
+          <button class="btn-acao" onclick="exportarCSV()">Exportar</button>
         </div>
 
         <div class="linha-conta">
@@ -291,7 +309,7 @@
         </div>
 
         <div class="linha-sair">
-          <button class="btn-sair" onclick="mostrarToast('👋 Até logo!')">Sair 🚪</button>
+          <button class="btn-sair" onclick="logout()">Sair 🚪</button>
         </div>
 
       </div>
@@ -300,10 +318,36 @@
 
   <div class="toast" id="toast"></div>
 
+  <!-- MODAL EDITAR PERFIL -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-box">
+      <div class="modal-titulo">✏️ Editar Perfil</div>
+      <label class="modal-label">NOME COMPLETO</label>
+      <input class="modal-input" id="editNome" type="text" placeholder="Seu nome">
+      <label class="modal-label">E-MAIL</label>
+      <input class="modal-input" id="editEmail" type="email" placeholder="seu@email.com">
+      <label class="modal-label">NOVA SENHA <span style="font-weight:normal;color:#a6a6a6;">(deixe em branco para manter)</span></label>
+      <input class="modal-input" id="editSenha" type="password" placeholder="Nova senha">
+      <div class="modal-erro" id="modalErro"></div>
+      <div class="modal-btns">
+        <button class="modal-btn cancelar" onclick="fecharModal()">Cancelar</button>
+        <button class="modal-btn salvar" onclick="salvarPerfil()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
   <script>
+    const usuario = JSON.parse(sessionStorage.getItem('usuario'));
+    if (!usuario?.codusuario) window.location.href = 'index.html';
+
+    function logout() {
+      sessionStorage.removeItem('usuario');
+      window.location.href = 'index.html';
+    }
+
     /* ── Gêneros ── */
     const todosGeneros = ['HQ/Mangás','Fantasia','Ficção Científica','Terror','Suspense','Autoajuda','Clássicos','Romance','Aventura','Biografia'];
-    const generosAtivos = new Set(['HQ/Mangás','Fantasia','Ficção Científica','Terror','Suspense','Autoajuda','Clássicos']);
+    const generosAtivos = new Set();
 
     function renderGeneros() {
       document.getElementById('generos-row').innerHTML = todosGeneros.map(g => {
@@ -316,15 +360,12 @@
       if (generosAtivos.has(g)) {
         generosAtivos.delete(g);
         el.style.background = '#c0b090';
-        mostrarToast(`➖ ${g} removido`);
       } else {
         generosAtivos.add(g);
         el.style.background = '#e6a921';
-        mostrarToast(`➕ ${g} adicionado`);
       }
+      salvarConfig('generos_favoritos', [...generosAtivos].join(','));
     }
-
-    renderGeneros();
 
     /* ── Abas ── */
     function trocarAba(id, btn) {
@@ -335,9 +376,57 @@
       btn.classList.remove('inativa');
     }
 
-    /* ── Toggles ── */
-    function salvarToggle(campo, valor) {
-      mostrarToast(`✅ ${campo.charAt(0).toUpperCase() + campo.slice(1)} ${valor ? 'ativado' : 'desativado'}`);
+    /* ── Salvar config via API ── */
+    async function salvarConfig(campo, valor) {
+      try {
+        const body = { usuario: usuario.codusuario };
+        body[campo] = valor;
+        await fetch('api/configuracao.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        mostrarToast('✅ Preferência salva!');
+      } catch (e) {
+        mostrarToast('Erro ao salvar preferência.');
+      }
+    }
+
+    /* ── Carregar config do servidor ── */
+    async function carregarConfig() {
+      document.getElementById('perfilNome').textContent = usuario.nome;
+
+      try {
+        const resp = await fetch(`api/configuracao.php?usuario=${usuario.codusuario}`);
+        const cfg = await resp.json();
+
+        document.getElementById('perfilSub').textContent = usuario.email;
+
+        if (cfg.estante_publica != null)
+          document.getElementById('toggleEstante').checked = cfg.estante_publica == 1;
+        if (cfg.mostrar_localizacao != null)
+          document.getElementById('toggleLocalizacao').checked = cfg.mostrar_localizacao == 1;
+        if (cfg.mostrar_avaliacao != null)
+          document.getElementById('toggleAvaliacao').checked = cfg.mostrar_avaliacao == 1;
+        if (cfg.ordenar_por) {
+          const sel = document.getElementById('selectOrdenar');
+          [...sel.options].forEach(o => { if (o.value === cfg.ordenar_por) o.selected = true; });
+        }
+
+        if (cfg.generos_favoritos) {
+          cfg.generos_favoritos.forEach(g => generosAtivos.add(g));
+        }
+      } catch (e) {
+        document.getElementById('perfilSub').textContent = usuario.email;
+      }
+
+      renderGeneros();
+    }
+
+    /* ── Exportar CSV ── */
+    function exportarCSV() {
+      mostrarToast('📥 Exportação iniciada!');
+      window.location.href = `api/exportar_csv.php?usuario=${usuario.codusuario}`;
     }
 
     /* ── Excluir conta ── */
@@ -353,6 +442,64 @@
       t.textContent = msg; t.classList.add('visivel');
       setTimeout(() => t.classList.remove('visivel'), 3000);
     }
+
+    carregarConfig();
+
+    /* ── Modal Editar Perfil ── */
+    function abrirModal() {
+      document.getElementById('editNome').value  = usuario.nome;
+      document.getElementById('editEmail').value = usuario.email;
+      document.getElementById('editSenha').value = '';
+      document.getElementById('modalErro').style.display = 'none';
+      document.getElementById('modalOverlay').classList.add('aberto');
+    }
+
+    function fecharModal() {
+      document.getElementById('modalOverlay').classList.remove('aberto');
+    }
+
+    async function salvarPerfil() {
+      const nome      = document.getElementById('editNome').value.trim();
+      const email     = document.getElementById('editEmail').value.trim();
+      const senhaNova = document.getElementById('editSenha').value;
+      const erroEl    = document.getElementById('modalErro');
+      erroEl.style.display = 'none';
+
+      if (!nome || !email) {
+        erroEl.textContent = 'Nome e e-mail são obrigatórios.';
+        erroEl.style.display = 'block';
+        return;
+      }
+
+      try {
+        const resp = await fetch('api/editar_perfil.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usuario: usuario.codusuario, nome, email, senha_nova: senhaNova }),
+        });
+        const dados = await resp.json();
+
+        if (dados.sucesso) {
+          usuario.nome  = dados.usuario.nome;
+          usuario.email = dados.usuario.email;
+          sessionStorage.setItem('usuario', JSON.stringify(usuario));
+          document.getElementById('perfilNome').textContent = usuario.nome;
+          document.getElementById('perfilSub').textContent  = usuario.email;
+          fecharModal();
+          mostrarToast('✅ Perfil atualizado!');
+        } else {
+          erroEl.textContent = dados.erro || 'Erro ao salvar.';
+          erroEl.style.display = 'block';
+        }
+      } catch (e) {
+        erroEl.textContent = 'Erro ao conectar com o servidor.';
+        erroEl.style.display = 'block';
+      }
+    }
+
+    document.getElementById('modalOverlay').addEventListener('click', function(e) {
+      if (e.target === this) fecharModal();
+    });
   </script>
 </body>
 </html>

@@ -84,6 +84,9 @@
     <a class="item-nav" href="matches.html">❤️ Matches</a>
     <a class="item-nav ativo" href="troca.html">✅ Trocas</a>
     <a class="item-nav" href="queroler.html">🛒 Quero Ler</a>
+
+    <span class="rotulo-nav">CONTA</span>
+    <a class="item-nav" href="#" onclick="logout()">🚪 Sair</a>
   </aside>
 
   <div class="conteudo">
@@ -98,81 +101,73 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    const statusConfig = {
-      disponivel: { classe: 'status-disponivel', textoClasse: 'status-disponivel-txt', texto: 'Disponível' },
-      negociando: { classe: 'status-negociando', textoClasse: 'status-negociando-txt', texto: 'Em negociação' },
-      concluida:  { classe: 'status-concluida',  textoClasse: 'status-concluida-txt',  texto: 'Troca concluída' },
-    };
+    const usuario = JSON.parse(sessionStorage.getItem('usuario'));
+    if (!usuario?.codusuario) window.location.href = 'index.html';
 
-
-    const livrosFixos = [
-      { titulo: 'Corte de Espinhos', autor: 'Sarah J. Maas',       cor: '#6b4c2a', status: 'disponivel' },
-      { titulo: 'Vade Mecum',        autor: 'Diversos Autores',     cor: '#2e7d32', status: 'negociando' },
-      { titulo: 'Teto para Dois',    autor: 'Colleen Hoover',       cor: '#1565c0', status: 'disponivel' },
-      { titulo: 'Rivalidade Ardente',autor: 'Ana Huang',            cor: '#ad1457', status: 'concluida'  },
-      { titulo: 'Duna',              autor: 'Frank Herbert',        cor: '#33691e', status: 'disponivel' },
-      { titulo: 'Transformers',      autor: 'Brian Ruckley',        cor: '#bf360c', status: 'negociando' },
-      { titulo: 'O Alquimista',      autor: 'Paulo Coelho',         cor: '#6d4c41', status: 'disponivel' },
-      { titulo: 'Jogos Vorazes',     autor: 'Suzanne Collins',      cor: '#37474f', status: 'concluida'  },
-      { titulo: 'Percy Jackson',     autor: 'Rick Riordan',         cor: '#1a237e', status: 'disponivel' },
-      { titulo: 'A Menina que Roubava Livros', autor: 'Markus Zusak', cor: '#4e342e', status: 'negociando' },
-    ];
-
-    const CHAVE_TROCA = 'bm_troca';
-
-    function lerDoStorage() {
-      try { return JSON.parse(localStorage.getItem(CHAVE_TROCA)) || []; }
-      catch { return []; }
-    }
-    function removerDoStorage(titulo) {
-      const lista = lerDoStorage().filter(l => l.titulo !== titulo);
-      localStorage.setItem(CHAVE_TROCA, JSON.stringify(lista));
+    function logout() {
+      sessionStorage.removeItem('usuario');
+      window.location.href = 'index.html';
     }
 
-    function montarLista() {
-      const doStorage = lerDoStorage();
-      const titlosFixos = livrosFixos.map(l => l.titulo);
-      const novos = doStorage.filter(l => !titlosFixos.includes(l.titulo));
-      const novosComStatus = novos.map(l => ({ ...l, status: l.status || 'disponivel' }));
-      return [...livrosFixos, ...novosComStatus];
-    }
+    let lista = [];
 
-    let lista = montarLista();
+    async function carregarLista() {
+      const grade = document.getElementById('grade');
+      try {
+        const resp  = await fetch(`api/estante_livros.php?usuario=${usuario.codusuario}`);
+        const dados = await resp.json();
+        lista = dados.estante || [];
+        renderizar();
+      } catch (e) {
+        grade.innerHTML = '<p style="color:#a6a6a6;text-align:center;grid-column:1/-1;padding:40px 0;">Erro ao carregar estante.</p>';
+      }
+    }
 
     function renderizar() {
       const grade = document.getElementById('grade');
       grade.innerHTML = '';
-      document.getElementById('badgeTotal').textContent = `${lista.length} livros`;
+      document.getElementById('badgeTotal').textContent = `${lista.length} livro${lista.length !== 1 ? 's' : ''}`;
+
+      if (!lista.length) {
+        grade.innerHTML = '<p style="color:#a6a6a6;text-align:center;grid-column:1/-1;padding:40px 0;">Nenhum livro na estante. Adicione livros para trocar!</p>';
+        return;
+      }
 
       lista.forEach((l, i) => {
-        const isFixo = livrosFixos.some(f => f.titulo === l.titulo);
-        const cfg = statusConfig[l.status] || statusConfig['disponivel'];
-        const capaHtml = l.capaUrl
-          ? `<img class="card-capa-img" src="${l.capaUrl}" alt="Capa de ${l.titulo}">`
-          : `<div class="card-capa-placeholder" style="background:${l.cor || '#c0b090'};">📖</div>`;
+        const capaHtml = l.foto
+          ? `<img class="card-capa-img" src="${l.foto}" alt="Capa de ${l.titulo}" onerror="this.outerHTML='<div class=\'card-capa-placeholder\'>📖</div>'">`
+          : `<div class="card-capa-placeholder">📖</div>`;
 
         grade.innerHTML += `
           <div class="card-livro" id="card-${i}">
-            <button class="btn-remover" onclick="remover(${i}, ${isFixo})" title="Remover">✕</button>
+            <button class="btn-remover" onclick="remover(${i})" title="Remover">✕</button>
             ${capaHtml}
             <div class="card-info">
               <div class="card-titulo">${l.titulo}</div>
-              <div class="card-autor">${l.autor}</div>
+              <div class="card-autor">${l.autor || '—'}</div>
               <div class="status-row">
-                <div class="status-bolinha ${cfg.classe}"></div>
-                <span class="status-texto ${cfg.textoClasse}">${cfg.texto}</span>
+                <div class="status-bolinha status-disponivel"></div>
+                <span class="status-texto status-disponivel-txt">Disponível</span>
               </div>
             </div>
           </div>`;
       });
     }
 
-    function remover(i, isFixo) {
-      const titulo = lista[i].titulo;
-      if (!isFixo) removerDoStorage(titulo);
-      lista.splice(i, 1);
-      renderizar();
-      mostrarToast(`"${titulo}" removido da lista`);
+    async function remover(i) {
+      const livro = lista[i];
+      try {
+        await fetch('api/remover_estante.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usuario: usuario.codusuario, estante_cod: livro.estante_cod }),
+        });
+        lista.splice(i, 1);
+        renderizar();
+        mostrarToast(`"${livro.titulo}" removido da estante`);
+      } catch (e) {
+        mostrarToast('Erro ao remover livro.');
+      }
     }
 
     function mostrarToast(msg) {
@@ -181,7 +176,7 @@
       setTimeout(() => t.classList.remove('visivel'), 3000);
     }
 
-    renderizar();
+    carregarLista();
   </script>
 </body>
 </html>

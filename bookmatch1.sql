@@ -1,11 +1,10 @@
+CREATE DATABASE  IF NOT EXISTS `bookmatch` /*!40100 DEFAULT CHARACTER SET utf8mb3 */ /*!80016 DEFAULT ENCRYPTION='N' */;
+USE `bookmatch`;
 -- MySQL dump 10.13  Distrib 8.0.42, for Win64 (x86_64)
 --
 -- Host: 127.0.0.1    Database: bookmatch
 -- ------------------------------------------------------
--- Server version	5.5.5-10.4.32-MariaDB
-
-CREATE DATABASE IF NOT EXISTS `bookmatch` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
-USE `bookmatch`;
+-- Server version	8.0.46
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -26,10 +25,10 @@ DROP TABLE IF EXISTS `autores`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `autores` (
-  `cod_autor` int(11) NOT NULL AUTO_INCREMENT,
+  `cod_autor` int NOT NULL AUTO_INCREMENT,
   `nome` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`cod_autor`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -49,14 +48,14 @@ DROP TABLE IF EXISTS `configuracao`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `configuracao` (
-  `estante_publica` tinyint(4) NOT NULL DEFAULT 0,
-  `mostrar_localizacao` tinyint(4) NOT NULL DEFAULT 0,
-  `mostrar_avaliacao` tinyint(4) NOT NULL DEFAULT 0,
+  `estante_publica` tinyint NOT NULL DEFAULT '0',
+  `mostrar_localizacao` tinyint NOT NULL DEFAULT '0',
+  `mostrar_avaliacao` tinyint NOT NULL DEFAULT '0',
   `ordenar_por` varchar(45) NOT NULL DEFAULT 'compatibilidade',
-  `usuario_codusuario` int(11) NOT NULL,
+  `usuario_codusuario` int NOT NULL,
   PRIMARY KEY (`usuario_codusuario`),
-  CONSTRAINT `fk_configuracao_usuario1` FOREIGN KEY (`usuario_codusuario`) REFERENCES `usuario` (`codusuario`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+  CONSTRAINT `fk_configuracao_usuario1` FOREIGN KEY (`usuario_codusuario`) REFERENCES `usuario` (`codusuario`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -76,19 +75,19 @@ DROP TABLE IF EXISTS `curtidas`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `curtidas` (
-  `codcurtida` int(11) NOT NULL AUTO_INCREMENT,
-  `datacurtida` date DEFAULT NULL,
-  `usuario_codusuario` int(11) NOT NULL,
-  `estante_cod` int(11) NOT NULL,
-  `usuario_codusuario1` int(11) NOT NULL,
+  `codcurtida` int NOT NULL AUTO_INCREMENT,
+  `datacurtida` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `usuario_codusuario` int NOT NULL,
+  `estante_cod` int NOT NULL,
+  `usuario_codusuario1` int NOT NULL,
   PRIMARY KEY (`codcurtida`),
   KEY `fk_curtidas_usuario1_idx` (`usuario_codusuario`),
   KEY `fk_curtidas_estante1_idx` (`estante_cod`),
   KEY `fk_curtidas_usuario2_idx` (`usuario_codusuario1`),
-  CONSTRAINT `fk_curtidas_estante1` FOREIGN KEY (`estante_cod`) REFERENCES `estante` (`cod`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `fk_curtidas_usuario1` FOREIGN KEY (`usuario_codusuario`) REFERENCES `usuario` (`codusuario`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `fk_curtidas_usuario2` FOREIGN KEY (`usuario_codusuario1`) REFERENCES `usuario` (`codusuario`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+  CONSTRAINT `fk_curtidas_estante1` FOREIGN KEY (`estante_cod`) REFERENCES `estante` (`cod`),
+  CONSTRAINT `fk_curtidas_usuario1` FOREIGN KEY (`usuario_codusuario`) REFERENCES `usuario` (`codusuario`),
+  CONSTRAINT `fk_curtidas_usuario2` FOREIGN KEY (`usuario_codusuario1`) REFERENCES `usuario` (`codusuario`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -108,15 +107,15 @@ DROP TABLE IF EXISTS `escreveu`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `escreveu` (
-  `codescreveu` int(11) NOT NULL AUTO_INCREMENT,
-  `livro_codlivro` int(11) NOT NULL,
-  `autores_cod_autor` int(11) NOT NULL,
+  `codescreveu` int NOT NULL,
+  `livro_codlivro` int NOT NULL AUTO_INCREMENT,
+  `autores_cod_autor` int NOT NULL,
   PRIMARY KEY (`codescreveu`),
   KEY `fk_escreveu_livro1_idx` (`livro_codlivro`),
   KEY `fk_escreveu_autores1_idx` (`autores_cod_autor`),
-  CONSTRAINT `fk_escreveu_autores1` FOREIGN KEY (`autores_cod_autor`) REFERENCES `autores` (`cod_autor`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `fk_escreveu_livro1` FOREIGN KEY (`livro_codlivro`) REFERENCES `livro` (`codlivro`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+  CONSTRAINT `fk_escreveu_autores1` FOREIGN KEY (`autores_cod_autor`) REFERENCES `autores` (`cod_autor`),
+  CONSTRAINT `fk_escreveu_livro1` FOREIGN KEY (`livro_codlivro`) REFERENCES `livro` (`codlivro`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -136,16 +135,16 @@ DROP TABLE IF EXISTS `estante`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `estante` (
-  `cod` int(11) NOT NULL AUTO_INCREMENT,
-  `data_adicionado` datetime DEFAULT NULL,
-  `livro_codlivro` int(11) NOT NULL,
-  `usuario_codusuario` int(11) NOT NULL,
+  `cod` int NOT NULL AUTO_INCREMENT,
+  `data_adicionado` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `livro_codlivro` int NOT NULL,
+  `usuario_codusuario` int NOT NULL,
   PRIMARY KEY (`cod`),
   KEY `fk_prateleira_livro_idx` (`livro_codlivro`),
   KEY `fk_prateleira_usuario1_idx` (`usuario_codusuario`),
-  CONSTRAINT `fk_prateleira_livro` FOREIGN KEY (`livro_codlivro`) REFERENCES `livro` (`codlivro`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `fk_prateleira_usuario1` FOREIGN KEY (`usuario_codusuario`) REFERENCES `usuario` (`codusuario`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+  CONSTRAINT `fk_prateleira_livro` FOREIGN KEY (`livro_codlivro`) REFERENCES `livro` (`codlivro`),
+  CONSTRAINT `fk_prateleira_usuario1` FOREIGN KEY (`usuario_codusuario`) REFERENCES `usuario` (`codusuario`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -165,10 +164,10 @@ DROP TABLE IF EXISTS `generos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `generos` (
-  `codgen` int(11) NOT NULL AUTO_INCREMENT,
+  `codgen` int NOT NULL AUTO_INCREMENT,
   `genero` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`codgen`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -177,17 +176,6 @@ CREATE TABLE `generos` (
 
 LOCK TABLES `generos` WRITE;
 /*!40000 ALTER TABLE `generos` DISABLE KEYS */;
-INSERT INTO `generos` (`genero`) VALUES
-  ('Romance'),
-  ('Ficção'),
-  ('Ficção Científica'),
-  ('Fantasia'),
-  ('Terror'),
-  ('Clássicos'),
-  ('Autoajuda'),
-  ('Não-Ficção'),
-  ('Infantil'),
-  ('HQ/Mangás');
 /*!40000 ALTER TABLE `generos` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -199,16 +187,16 @@ DROP TABLE IF EXISTS `generos_favo`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `generos_favo` (
-  `codgen_fav` int(11) NOT NULL AUTO_INCREMENT,
-  `data_adic` datetime DEFAULT NULL,
-  `usuario_codusuario` int(11) NOT NULL,
-  `generos_codgen` int(11) NOT NULL,
+  `codgen_fav` int NOT NULL AUTO_INCREMENT,
+  `data_adic` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `usuario_codusuario` int NOT NULL,
+  `generos_codgen` int NOT NULL,
   PRIMARY KEY (`codgen_fav`),
   KEY `fk_generos_favo_usuario1_idx` (`usuario_codusuario`),
   KEY `fk_generos_favo_generos1_idx` (`generos_codgen`),
-  CONSTRAINT `fk_generos_favo_generos1` FOREIGN KEY (`generos_codgen`) REFERENCES `generos` (`codgen`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `fk_generos_favo_usuario1` FOREIGN KEY (`usuario_codusuario`) REFERENCES `usuario` (`codusuario`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+  CONSTRAINT `fk_generos_favo_generos1` FOREIGN KEY (`generos_codgen`) REFERENCES `generos` (`codgen`),
+  CONSTRAINT `fk_generos_favo_usuario1` FOREIGN KEY (`usuario_codusuario`) REFERENCES `usuario` (`codusuario`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -221,6 +209,32 @@ LOCK TABLES `generos_favo` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `imagem_livro_usuario`
+--
+
+DROP TABLE IF EXISTS `imagem_livro_usuario`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `imagem_livro_usuario` (
+  `cod_imagem_livro_usuario` int NOT NULL AUTO_INCREMENT,
+  `imagem` varchar(80) DEFAULT NULL,
+  `estante_cod` int NOT NULL,
+  PRIMARY KEY (`cod_imagem_livro_usuario`),
+  KEY `fk_imagem_livro_usuario_estante1_idx` (`estante_cod`),
+  CONSTRAINT `fk_imagem_livro_usuario_estante1` FOREIGN KEY (`estante_cod`) REFERENCES `estante` (`cod`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `imagem_livro_usuario`
+--
+
+LOCK TABLES `imagem_livro_usuario` WRITE;
+/*!40000 ALTER TABLE `imagem_livro_usuario` DISABLE KEYS */;
+/*!40000 ALTER TABLE `imagem_livro_usuario` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `livro`
 --
 
@@ -228,15 +242,16 @@ DROP TABLE IF EXISTS `livro`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `livro` (
-  `codlivro` int(11) NOT NULL AUTO_INCREMENT,
-  `nome` varchar(255) DEFAULT NULL,
-  `editora` varchar(100) DEFAULT NULL,
-  `foto` varchar(500) DEFAULT NULL,
-  `genero` varchar(45) DEFAULT NULL,
-  `data_lancamento` varchar(4) DEFAULT NULL,
-  `imagem` varchar(500) DEFAULT NULL,
-  PRIMARY KEY (`codlivro`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+  `codlivro` int NOT NULL AUTO_INCREMENT,
+  `isbn` varchar(13) NOT NULL,
+  `nome` varchar(45) DEFAULT NULL,
+  `editora` varchar(45) DEFAULT NULL,
+  `foto_api` varchar(70) DEFAULT NULL,
+  `genero` varchar(30) DEFAULT NULL,
+  `data_lancamento` year DEFAULT NULL,
+  PRIMARY KEY (`codlivro`),
+  KEY `ISBN` (`isbn`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -256,15 +271,15 @@ DROP TABLE IF EXISTS `livros_quer_ler`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `livros_quer_ler` (
-  `usuario_codusuario` int(11) NOT NULL,
-  `livro_codlivro` int(11) NOT NULL,
-  `cod_quer_ler` int(11) NOT NULL AUTO_INCREMENT,
+  `usuario_codusuario` int NOT NULL AUTO_INCREMENT,
+  `livro_codlivro` int NOT NULL,
+  `cod_quer_ler` int NOT NULL,
   PRIMARY KEY (`cod_quer_ler`),
   KEY `fk_table1_usuario1_idx` (`usuario_codusuario`),
   KEY `fk_table1_livro1_idx` (`livro_codlivro`),
-  CONSTRAINT `fk_table1_livro1` FOREIGN KEY (`livro_codlivro`) REFERENCES `livro` (`codlivro`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `fk_table1_usuario1` FOREIGN KEY (`usuario_codusuario`) REFERENCES `usuario` (`codusuario`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+  CONSTRAINT `fk_table1_livro1` FOREIGN KEY (`livro_codlivro`) REFERENCES `livro` (`codlivro`),
+  CONSTRAINT `fk_table1_usuario1` FOREIGN KEY (`usuario_codusuario`) REFERENCES `usuario` (`codusuario`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -284,16 +299,16 @@ DROP TABLE IF EXISTS `matches`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `matches` (
-  `curtidas_codcurtida` int(11) NOT NULL,
-  `curtidas_codcurtida1` int(11) NOT NULL,
-  `datamatch` date DEFAULT NULL,
-  `codmacth` int(11) NOT NULL AUTO_INCREMENT,
+  `codmacth` int NOT NULL,
+  `curtidas_codcurtida` int NOT NULL AUTO_INCREMENT,
+  `curtidas_codcurtida1` int NOT NULL,
+  `datamatch` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`codmacth`),
   KEY `fk_matches_curtidas1_idx` (`curtidas_codcurtida`),
   KEY `fk_matches_curtidas2_idx` (`curtidas_codcurtida1`),
-  CONSTRAINT `fk_matches_curtidas1` FOREIGN KEY (`curtidas_codcurtida`) REFERENCES `curtidas` (`codcurtida`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `fk_matches_curtidas2` FOREIGN KEY (`curtidas_codcurtida1`) REFERENCES `curtidas` (`codcurtida`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+  CONSTRAINT `fk_matches_curtidas1` FOREIGN KEY (`curtidas_codcurtida`) REFERENCES `curtidas` (`codcurtida`),
+  CONSTRAINT `fk_matches_curtidas2` FOREIGN KEY (`curtidas_codcurtida1`) REFERENCES `curtidas` (`codcurtida`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -313,17 +328,17 @@ DROP TABLE IF EXISTS `mensagem`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mensagem` (
-  `codmensagem` int(11) NOT NULL AUTO_INCREMENT,
-  `usuario_codusuario_remetente` int(11) NOT NULL,
-  `usuario_codusuario1_destinatario` int(11) NOT NULL,
-  `mensagem` text DEFAULT NULL,
-  `data_envio` timestamp NULL DEFAULT current_timestamp(),
+  `codmensagem` int NOT NULL AUTO_INCREMENT,
+  `usuario_codusuario_remetente` int NOT NULL,
+  `usuario_codusuario_destinatario` int NOT NULL,
+  `mensagem` tinytext,
+  `data_envio` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`codmensagem`),
   KEY `fk_mensagem_usuario1_idx` (`usuario_codusuario_remetente`),
-  KEY `fk_mensagem_usuario2_idx` (`usuario_codusuario1_destinatario`),
-  CONSTRAINT `fk_mensagem_usuario1` FOREIGN KEY (`usuario_codusuario_remetente`) REFERENCES `usuario` (`codusuario`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `fk_mensagem_usuario2` FOREIGN KEY (`usuario_codusuario1_destinatario`) REFERENCES `usuario` (`codusuario`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+  KEY `fk_mensagem_usuario2_idx` (`usuario_codusuario_destinatario`),
+  CONSTRAINT `fk_mensagem_usuario1` FOREIGN KEY (`usuario_codusuario_remetente`) REFERENCES `usuario` (`codusuario`),
+  CONSTRAINT `fk_mensagem_usuario2` FOREIGN KEY (`usuario_codusuario_destinatario`) REFERENCES `usuario` (`codusuario`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -332,6 +347,7 @@ CREATE TABLE `mensagem` (
 
 LOCK TABLES `mensagem` WRITE;
 /*!40000 ALTER TABLE `mensagem` DISABLE KEYS */;
+INSERT INTO `mensagem` VALUES (1,1,2,'Oi Felipe, você conseguiu terminar a parte da modelagem do banco?','2026-05-11 23:36:39'),(2,2,1,'Consegui sim, Gabriel! Já atualizei o script sem a coluna de foto.','2026-05-11 23:36:39'),(3,1,2,'Ótimo. Você tem aquele livro sobre engenharia de software para me emprestar?','2026-05-11 23:36:39'),(4,2,1,'Tenho sim, levo na universidade amanhã para você.','2026-05-11 23:36:39'),(5,3,1,'Olá! Vi que você tem interesse em história da imigração, tem algum livro para recomendar?','2026-05-11 23:36:39');
 /*!40000 ALTER TABLE `mensagem` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -343,16 +359,16 @@ DROP TABLE IF EXISTS `usuario`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `usuario` (
-  `codusuario` int(11) NOT NULL AUTO_INCREMENT,
-  `nome` varchar(100) NOT NULL,
-  `email` varchar(100) NOT NULL,
-  `senha` varchar(255) NOT NULL,
-  `data_cadastro` datetime DEFAULT NULL,
+  `codusuario` int NOT NULL AUTO_INCREMENT,
+  `nome` varchar(45) NOT NULL,
+  `email` varchar(45) NOT NULL,
+  `senha` varchar(15) NOT NULL,
+  `data_cadastro` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `data_ultimo_acesso` datetime DEFAULT NULL,
   `foto` varchar(60) DEFAULT NULL,
-  `ativo` tinyint(4) NOT NULL DEFAULT 1,
+  `ativo` tinyint NOT NULL DEFAULT '1',
   PRIMARY KEY (`codusuario`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -361,6 +377,7 @@ CREATE TABLE `usuario` (
 
 LOCK TABLES `usuario` WRITE;
 /*!40000 ALTER TABLE `usuario` DISABLE KEYS */;
+INSERT INTO `usuario` VALUES (1,'Gabriel','gabriel@email.com','Senha123!','2026-05-11 23:32:04',NULL,NULL,1),(2,'Felipe','felipe@email.com','Proj2026*','2026-05-11 23:32:04',NULL,NULL,1),(3,'Usuario Teste','teste@bookmatch.com','teste123','2026-05-11 23:32:04',NULL,NULL,1),(4,'Admin Sistema','admin@bookmatch.com','admin_root','2026-05-11 23:32:04',NULL,NULL,1),(5,'Pedro de Alcântara Francisco António João Car','Pedro@gmail.com','123456789','2026-05-12 22:32:08',NULL,NULL,1);
 /*!40000 ALTER TABLE `usuario` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -373,4 +390,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-04-27 21:22:35
+-- Dump completed on 2026-05-25 18:58:50

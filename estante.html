@@ -224,8 +224,9 @@
     </div>
 
         <span class="rotulo-nav">PRINCIPAL</span>
-        <a class="item-nav ativo" href="#">📚 Minha Estante</a>
-        <a class="item-nav" href="descobrir.html">🔍 Descobrir Livros</a>
+        <a class="item-nav ativo" href="estante.html">📚 Minha Estante</a>
+        <a class="item-nav" href="adicionarlivro.html">🔍 Adicionar Livro</a>
+        <a class="item-nav" href="descobrir.html">🔎 Descobrir Livros</a>
         <a class="item-nav" href="curtidas.html"> 💕 Curtidas</a>
         <a class="item-nav" href="mensagens.html">💬 Mensagens <span class="notificacao">3</span></a>
         <a class="item-nav" href="configuracao.html">⚙️ Configurações</a>
@@ -234,90 +235,157 @@
         <a class="item-nav" href="matches.html">❤️ Matches</a>
         <a class="item-nav" href="troca.html">✅ Trocas</a>
         <a class="item-nav" href="queroler.html">🛒 Quero ler</a>
+
+        <span class="rotulo-nav">CONTA</span>
+        <a class="item-nav" href="#" onclick="logout()">🚪 Sair</a>
     </aside>
 
     <main class="conteudo-principal">
         <div class="topo-estante">
             <h2>Minha Estante</h2>
-
-            <!-- botão conectado à página adicionarlivro.html -->
-            <button 
-              class="botao-adicionar"
-              onclick="window.location.href='adicionarlivro.html'">
-              ＋ Adicionar Livro
-            </button>
+            <div style="display:flex;gap:12px;align-items:center;">
+              <select id="selectOrdem" onchange="reordenar()" style="height:44px;border-radius:30px;border:none;background:#ede9d3;padding:0 18px;font-family:'Quicksand';font-size:13px;font-weight:bold;color:#701d1c;cursor:pointer;outline:none;">
+                <option value="">Ordenar por...</option>
+                <option value="titulo">Título (A–Z)</option>
+                <option value="autor">Autor (A–Z)</option>
+                <option value="genero">Gênero</option>
+              </select>
+              <button class="botao-adicionar" onclick="window.location.href='adicionarlivro.html'">＋ Adicionar Livro</button>
+            </div>
         </div>
 
         <div class="linha-estatisticas">
             <div class="cartao-estatistica">
                 <span class="titulo-estatistica">TOTAL DE LIVROS</span>
-                <span class="valor-estatistica">67</span>
-                <span class="legenda-estatistica">+3 este mês</span>
+                <span class="valor-estatistica" id="statTotal">—</span>
+                <span class="legenda-estatistica">na estante</span>
             </div>
             <div class="cartao-estatistica">
-                <span class="titulo-estatistica">LENDO AGORA</span>
-                <span class="valor-estatistica">2</span>
-                <span class="legenda-estatistica">Em andamento</span>
+                <span class="titulo-estatistica">QUERO LER</span>
+                <span class="valor-estatistica" id="statQueroLer">—</span>
+                <span class="legenda-estatistica">na lista</span>
             </div>
             <div class="cartao-estatistica">
                 <span class="titulo-estatistica">MATCHES</span>
-                <span class="valor-estatistica">9</span>
-                <span class="legenda-estatistica">2 novos hoje</span>
+                <span class="valor-estatistica" id="statMatches">—</span>
+                <span class="legenda-estatistica">combinações</span>
             </div>
             <div class="cartao-estatistica">
                 <span class="titulo-estatistica">GÊNERO FAVORITO</span>
-                <span class="valor-estatistica" style="font-size: 24px; padding-top: 12px;">Fantasia</span>
-                <span class="legenda-estatistica">14 títulos</span>
+                <span class="valor-estatistica" id="statGenero" style="font-size: 24px; padding-top: 12px;">—</span>
+                <span class="legenda-estatistica">mais frequente</span>
             </div>
         </div>
 
         <div class="container-estante">
             <div class="cabecalho-estante">
                 <span class="titulo-estante">Matches</span>
-                <span class="contagem-estante">9 Livros</span>
+                <span class="contagem-estante" id="countMatches">0 Livros</span>
             </div>
-            <div class="fila-livros">
-                <div class="livro" style="background:#3a3a5e;"><span class="texto-livro">Assassin's Creed</span></div>
-                <div class="livro" style="background:#4a6741;"><span class="texto-livro">Rangers</span></div>
-                <div class="livro" style="background:#2c2c2c;"><span class="texto-livro">Sherlock Holmes</span></div>
-                <div class="livro" style="background:#c0392b;"><span class="texto-livro">Diário de um Banana</span></div>
-                <div class="livro" style="background:#e67e22;"><span class="texto-livro">O Poder do Hábito</span></div>
-                <div class="livro" style="background:#5d6d7e;"><span class="texto-livro">Sapiens</span></div>
-                <div class="livro" style="background:#1a1a2e;"><span class="texto-livro">A Bíblia Sagrada</span></div>
+            <div class="fila-livros" id="filaMatches">
+                <span style="color:#a6a6a6;font-size:13px;">Carregando...</span>
             </div>
         </div>
 
         <div class="container-estante">
             <div class="cabecalho-estante">
                 <span class="titulo-estante">Troca</span>
-                <span class="contagem-estante">10 Livros</span>
+                <span class="contagem-estante" id="countTroca">0 Livros</span>
             </div>
-            <div class="fila-livros">
-                <div class="livro" style="background:#6b4c2a;"><span class="texto-livro">Corte de Espinhos</span></div>
-                <div class="livro" style="background:#2e7d32;"><span class="texto-livro">Vade Mecum</span></div>
-                <div class="livro" style="background:#1565c0;"><span class="texto-livro">Teto para Dois</span></div>
-                <div class="livro" style="background:#ad1457;"><span class="texto-livro">Rivalidade Ardente</span></div>
-                <div class="livro" style="background:#33691e;"><span class="texto-livro">Duna</span></div>
-                <div class="livro" style="background:#bf360c;"><span class="texto-livro">Transformers</span></div>
+            <div class="fila-livros" id="filaTroca">
+                <span style="color:#a6a6a6;font-size:13px;">Carregando...</span>
             </div>
         </div>
 
         <div class="container-estante">
             <div class="cabecalho-estante">
                 <span class="titulo-estante">Quero Ler</span>
-                <span class="contagem-estante">25 Livros</span>
+                <span class="contagem-estante" id="countQueroLer">0 Livros</span>
             </div>
-            <div class="fila-livros">
-                <div class="livro" style="background:#6d4c41;"><span class="texto-livro">Finlay Donovan</span></div>
-                <div class="livro" style="background:#880e4f;"><span class="texto-livro">Chama de Ferro</span></div>
-                <div class="livro" style="background:#1a237e;"><span class="texto-livro">The Binding</span></div>
-                <div class="livro" style="background:#4a148c;"><span class="texto-livro">Powerless</span></div>
-                <div class="livro" style="background:#01579b;"><span class="texto-livro">Academia dos Arquivados</span></div>
-                <div class="livro" style="background:#33691e;"><span class="texto-livro">Assistente do Vilão</span></div>
+            <div class="fila-livros" id="filaQueroLer">
+                <span style="color:#a6a6a6;font-size:13px;">Carregando...</span>
             </div>
         </div>
 
     </main>
 
+  <script>
+    const usuario = JSON.parse(sessionStorage.getItem('usuario'));
+    if (!usuario?.codusuario) window.location.href = 'index.html';
+
+    function logout() {
+      sessionStorage.removeItem('usuario');
+      window.location.href = 'index.html';
+    }
+
+    const coresPadrao = ['#3a3a5e','#4a6741','#2c2c2c','#c0392b','#e67e22','#5d6d7e','#6b4c2a','#2e7d32','#1565c0','#ad1457'];
+    function corPadrao(i) { return coresPadrao[i % coresPadrao.length]; }
+
+    let dadosEstante = { estante: [], quero_ler: [], matches: [] };
+
+    function ordenarLista(lista, campo) {
+      if (!campo) return lista;
+      return [...lista].sort((a, b) => {
+        const va = (a[campo] || a.titulo || '').toLowerCase();
+        const vb = (b[campo] || b.titulo || '').toLowerCase();
+        return va.localeCompare(vb, 'pt-BR');
+      });
+    }
+
+    function reordenar() {
+      const campo = document.getElementById('selectOrdem').value;
+      renderFila('filaMatches',  ordenarLista(dadosEstante.matches,   campo));
+      renderFila('filaTroca',    ordenarLista(dadosEstante.estante,   campo));
+      renderFila('filaQueroLer', ordenarLista(dadosEstante.quero_ler, campo));
+    }
+
+    function renderFila(containerId, lista) {
+      const el = document.getElementById(containerId);
+      if (!lista.length) {
+        el.innerHTML = '<span style="color:#a6a6a6;font-size:13px;">Nenhum livro ainda.</span>';
+        return;
+      }
+      el.innerHTML = lista.map((l, i) => l.foto
+        ? `<img src="${l.foto}" alt="${l.titulo}" title="${l.titulo}"
+              style="width:75px;height:110px;object-fit:cover;border-radius:8px;flex-shrink:0;cursor:pointer;transition:0.3s;box-shadow:2px 4px 10px rgba(0,0,0,0.15);"
+              onerror="this.outerHTML='<div class=\'livro\' style=\'background:${corPadrao(i)}\'><span class=\'texto-livro\'>${l.titulo}</span></div>'">`
+        : `<div class="livro" style="background:${corPadrao(i)};"><span class="texto-livro">${l.titulo}</span></div>`
+      ).join('');
+    }
+
+    async function carregarEstante() {
+      try {
+        const [respStats, respLivros] = await Promise.all([
+          fetch(`api/estante_stats.php?usuario=${usuario.codusuario}`),
+          fetch(`api/estante_livros.php?usuario=${usuario.codusuario}`),
+        ]);
+        const stats  = await respStats.json();
+        const livros = await respLivros.json();
+
+        document.getElementById('statTotal').textContent   = stats.total_livros ?? '—';
+        document.getElementById('statMatches').textContent = stats.matches ?? '—';
+        document.getElementById('statGenero').textContent  = stats.genero_favorito || '—';
+
+        dadosEstante.estante   = livros.estante   || [];
+        dadosEstante.quero_ler = livros.quero_ler || [];
+        dadosEstante.matches   = livros.matches   || [];
+
+        document.getElementById('statQueroLer').textContent  = dadosEstante.quero_ler.length;
+        document.getElementById('countMatches').textContent  = `${dadosEstante.matches.length} Livro${dadosEstante.matches.length  !== 1 ? 's' : ''}`;
+        document.getElementById('countTroca').textContent    = `${dadosEstante.estante.length} Livro${dadosEstante.estante.length   !== 1 ? 's' : ''}`;
+        document.getElementById('countQueroLer').textContent = `${dadosEstante.quero_ler.length} Livro${dadosEstante.quero_ler.length !== 1 ? 's' : ''}`;
+
+        renderFila('filaMatches',  dadosEstante.matches);
+        renderFila('filaTroca',    dadosEstante.estante);
+        renderFila('filaQueroLer', dadosEstante.quero_ler);
+      } catch (e) {
+        ['filaMatches','filaTroca','filaQueroLer'].forEach(id => {
+          document.getElementById(id).innerHTML = '<span style="color:#a6a6a6;font-size:13px;">Erro ao carregar.</span>';
+        });
+      }
+    }
+
+    carregarEstante();
+  </script>
 </body>
 </html>

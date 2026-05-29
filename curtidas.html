@@ -147,16 +147,19 @@
     </div>
 
      <span class="rotulo-nav">PRINCIPAL</span>
-        <a class="item-nav ativo" href="estante.html">📚 Minha Estante</a>
+        <a class="item-nav" href="estante.html">📚 Minha Estante</a>
         <a class="item-nav" href="descobrir.html">🔍 Descobrir Livros</a>
-        <a class="item-nav" href="curtidas.html"> 💕 Curtidas</a>
-        <a class="item-nav" href="mensagens.html">💬 Mensagens <span class="notificacao">3</span></a>
+        <a class="item-nav ativo" href="curtidas.html"> 💕 Curtidas</a>
+        <a class="item-nav" href="mensagens.html">💬 Mensagens <span class="notificacao" id="badgeMsg" style="display:none">0</span></a>
         <a class="item-nav" href="configuracao.html">⚙️ Configurações</a>
 
         <span class="rotulo-nav">SUAS LISTAS</span>
         <a class="item-nav" href="matches.html">❤️ Matches</a>
         <a class="item-nav" href="troca.html">✅ Trocas</a>
         <a class="item-nav" href="queroler.html">🛒 Quero ler</a>
+
+        <span class="rotulo-nav">CONTA</span>
+        <a class="item-nav" href="#" onclick="logout()">🚪 Sair</a>
   </aside>
 
   <!-- CONTEÚDO -->
@@ -237,72 +240,88 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    const recebidas = [
-      { iniciais: 'MC', cor: '#e4568b', nome: 'Marina Costa',    local: 'Curitiba, PR · 25 Livros',       generos: ['YAD','SUS','FIC'], nova: true  },
-      { iniciais: 'LP', cor: '#6b7f46', nome: 'Luciana Pereira', local: 'Salvador, BA · 80 Livros',       generos: ['TRI','ROM','NFIC'], nova: true  },
-      { iniciais: 'RC', cor: '#3a3a5e', nome: 'Rafael Campos',   local: 'Porto Alegre, RS · 30 Livros',   generos: ['ROCOM','TER','ERO'], nova: false },
-      { iniciais: 'AA', cor: '#c0392b', nome: 'Alice Aquino',    local: 'Rio de Janeiro, RJ · 75 Livros', generos: ['ROCOM','TER','ERO'], nova: false },
-      { iniciais: 'BL', cor: '#01579b', nome: 'Bruno Lima',      local: 'Fortaleza, CE · 40 Livros',      generos: ['FIC','AVE','SCI'],  nova: false },
-      { iniciais: 'JS', cor: '#4a148c', nome: 'Julia Santos',    local: 'Manaus, AM · 55 Livros',         generos: ['FAN','ROM','CLÁ'],  nova: false },
-      { iniciais: 'TM', cor: '#bf360c', nome: 'Thiago Melo',     local: 'Recife, PE · 20 Livros',         generos: ['SUS','TER','FIC'],  nova: false },
-      { iniciais: 'CF', cor: '#33691e', nome: 'Camila Faria',    local: 'Belo Horizonte, MG · 60 Livros', generos: ['ROM','YAD','FAN'],  nova: false },
-    ];
+    const usuario = JSON.parse(sessionStorage.getItem('usuario'));
+    if (!usuario?.codusuario) window.location.href = 'index.html';
 
-    const dadas = [
-      { iniciais: 'RC', cor: '#3a3a5e', nome: 'Rafael Campos', local: 'Porto Alegre, RS · 30 Livros', comum: '2 em comum', status: 'match'       },
-      { iniciais: 'MC', cor: '#e4568b', nome: 'Marina Costa',  local: 'Curitiba, PR · 25 Livros',     comum: '3 em comum', status: 'aguardando'   },
-      { iniciais: 'LP', cor: '#6b7f46', nome: 'Luciana Pereira',local: 'Salvador, BA · 80 Livros',    comum: '1 em comum', status: 'aguardando'   },
-      { iniciais: 'BL', cor: '#01579b', nome: 'Bruno Lima',    local: 'Fortaleza, CE · 40 Livros',    comum: '4 em comum', status: 'match'         },
-      { iniciais: 'TM', cor: '#bf360c', nome: 'Thiago Melo',   local: 'Recife, PE · 20 Livros',       comum: '2 em comum', status: 'aguardando'   },
-    ];
+    function logout() {
+      sessionStorage.removeItem('usuario');
+      window.location.href = 'index.html';
+    }
+
+    const cores = ['#e4568b','#6b7f46','#3a3a5e','#c0392b','#01579b','#4a148c','#bf360c','#33691e','#e67e22','#1a237e'];
+    function corPorNome(nome) { let h = 0; for (const c of nome) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff; return cores[Math.abs(h) % cores.length]; }
+    function iniciaisPorNome(nome) { return nome.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase(); }
 
     function htmlRecebida(p, comBotoes = true) {
+      const cor      = corPorNome(p.nome);
+      const iniciais = iniciaisPorNome(p.nome);
+      const local    = `${p.total_livros || 0} Livros`;
       return `
         <div class="card-recebida">
-          ${p.nova ? '<div class="badge-nova">nova</div>' : ''}
+          ${!p.ja_match ? '<div class="badge-nova">nova</div>' : ''}
           <div class="recebida-topo">
-            <div class="avatar" style="background:${p.cor};">${p.iniciais}</div>
+            <div class="avatar" style="background:${cor};">${iniciais}</div>
             <div>
               <div class="recebida-nome">${p.nome}</div>
-              <div class="recebida-local">${p.local}</div>
+              <div class="recebida-local">${local}</div>
             </div>
           </div>
-          <div class="generos-row">
-            ${p.generos.map(g => `<span class="tag-genero">${g}</span>`).join('')}
-          </div>
-          ${comBotoes ? `
+          <div class="generos-row"><span class="tag-genero">Leitor</span></div>
+          ${comBotoes && !p.ja_match ? `
           <div class="acoes-card">
-            <button class="btn-match" onclick="darMatch('${p.nome}')">❤️ Dar Match</button>
+            <button class="btn-match" onclick="darMatch(${p.codusuario}, '${p.nome}', this)">❤️ Dar Match</button>
             <button class="btn-ignorar" onclick="ignorar(this)" title="Ignorar">✕</button>
-          </div>` : ''}
+          </div>` : comBotoes ? `<div class="acoes-card"><span style="color:#6b7f46;font-size:12px;font-weight:bold;">✅ Match já feito!</span></div>` : ''}
         </div>`;
     }
 
     function htmlDada(p) {
-      const statusHtml = p.status === 'match'
+      const cor      = corPorNome(p.nome);
+      const iniciais = iniciaisPorNome(p.nome);
+      const local    = `${p.total_livros || 0} Livros`;
+      const statusHtml = p.ja_match
         ? `<div class="status-match">✅ Match</div>`
         : `<div class="status-aguardando">⏳ Aguardando</div>`;
       return `
         <div class="card-dada">
-          <div class="avatar" style="background:${p.cor};">${p.iniciais}</div>
+          <div class="avatar" style="background:${cor};">${iniciais}</div>
           <div class="dada-info">
             <div class="dada-nome">${p.nome}</div>
-            <div class="dada-local">${p.local}</div>
+            <div class="dada-local">${local}</div>
           </div>
-          <span class="tag-comum">${p.comum}</span>
           ${statusHtml}
         </div>`;
     }
 
-    // Preenche visão geral (4 recebidas + todas as dadas)
-    document.getElementById('gradeGeralRecebidas').innerHTML  = recebidas.slice(0,4).map(p => htmlRecebida(p)).join('');
-    document.getElementById('listaGeralDadas').innerHTML      = dadas.map(htmlDada).join('');
+    async function carregarCurtidas() {
+      try {
+        const resp  = await fetch(`api/curtidas.php?usuario=${usuario.codusuario}`);
+        const dados = await resp.json();
 
-    // Preenche aba recebidas (todas)
-    document.getElementById('gradeTodasRecebidas').innerHTML  = recebidas.map(p => htmlRecebida(p)).join('');
+        // Stats
+        document.querySelectorAll('.stat-valor')[0].textContent = dados.stats.recebidas;
+        document.querySelectorAll('.stat-valor')[1].textContent = dados.stats.dadas;
+        document.querySelectorAll('.stat-valor')[2].textContent = dados.stats.matches;
+        document.querySelectorAll('.stat-valor')[3].textContent = dados.stats.aguardando;
 
-    // Preenche aba dadas (todas)
-    document.getElementById('listaTodasDadas').innerHTML      = dadas.map(htmlDada).join('');
+        // Badges de novas
+        const novas = (dados.recebidas || []).filter(r => !r.ja_match).length;
+        document.querySelectorAll('.badge-novas').forEach(b => b.textContent = `${novas} nova${novas !== 1 ? 's' : ''}`);
+
+        const recebidas = dados.recebidas || [];
+        const dadas     = dados.dadas     || [];
+
+        const vazio = '<p style="color:#a6a6a6;text-align:center;grid-column:1/-1;padding:20px 0;">Nenhuma curtida ainda.</p>';
+
+        document.getElementById('gradeGeralRecebidas').innerHTML  = recebidas.length ? recebidas.slice(0, 4).map(p => htmlRecebida(p)).join('') : vazio;
+        document.getElementById('listaGeralDadas').innerHTML      = dadas.length     ? dadas.map(htmlDada).join('')                              : '<p style="color:#a6a6a6;padding:20px 0;">Nenhuma curtida enviada ainda.</p>';
+        document.getElementById('gradeTodasRecebidas').innerHTML  = recebidas.length ? recebidas.map(p => htmlRecebida(p)).join('')              : vazio;
+        document.getElementById('listaTodasDadas').innerHTML      = dadas.length     ? dadas.map(htmlDada).join('')                              : '<p style="color:#a6a6a6;padding:20px 0;">Nenhuma curtida enviada ainda.</p>';
+
+      } catch (e) {
+        mostrarToast('Erro ao carregar curtidas.');
+      }
+    }
 
     function trocarAba(id, btn) {
       document.querySelectorAll('.secao').forEach(s => s.classList.remove('ativa'));
@@ -312,14 +331,30 @@
       btn.classList.remove('inativa');
     }
 
-    function darMatch(nome) {
-      mostrarToast(`❤️ Match com ${nome} confirmado!`);
+    async function darMatch(outroId, nome, btn) {
+      try {
+        const resp  = await fetch('api/confirmar_match.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usuario: usuario.codusuario, outro_usuario: outroId }),
+        });
+        const dados = await resp.json();
+        if (dados.sucesso) {
+          mostrarToast(`❤️ Match com ${nome} confirmado!`);
+          btn.closest('.acoes-card').innerHTML = '<span style="color:#6b7f46;font-size:12px;font-weight:bold;">✅ Match feito!</span>';
+        } else {
+          mostrarToast(dados.erro || 'Não foi possível dar match.');
+        }
+      } catch (e) {
+        mostrarToast('Erro ao confirmar match.');
+      }
     }
 
     function ignorar(btn) {
-      btn.closest('.card-recebida').style.opacity = '0';
-      btn.closest('.card-recebida').style.transition = 'opacity 0.3s';
-      setTimeout(() => btn.closest('.card-recebida').remove(), 300);
+      const card = btn.closest('.card-recebida');
+      card.style.transition = 'opacity 0.3s';
+      card.style.opacity = '0';
+      setTimeout(() => card.remove(), 300);
     }
 
     function mostrarToast(msg) {
@@ -327,6 +362,8 @@
       t.textContent = msg; t.classList.add('visivel');
       setTimeout(() => t.classList.remove('visivel'), 3000);
     }
+
+    carregarCurtidas();
   </script>
 </body>
 </html>

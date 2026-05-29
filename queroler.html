@@ -74,6 +74,9 @@
     <a class="item-nav" href="matches.html">❤️ Matches</a>
     <a class="item-nav" href="troca.html">✅ Trocas</a>
     <a class="item-nav ativo" href="queroler.html">🛒 Quero Ler</a>
+
+    <span class="rotulo-nav">CONTA</span>
+    <a class="item-nav" href="#" onclick="logout()">🚪 Sair</a>
   </aside>
 
   <div class="conteudo">
@@ -87,72 +90,70 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    const livrosFixos = [
-      { titulo: 'Finlay Donovan', autor: 'Elle Cosimano', cor: '#6d4c41', genero: 'Suspense' },
-      { titulo: 'Chama de Ferro', autor: 'Rebecca Yarros', cor: '#880e4f', genero: 'Fantasia' },
-      { titulo: 'The Binding', autor: 'Bridget Collins', cor: '#1a237e', genero: 'Fantasia' },
-      { titulo: 'Powerless', autor: 'Lauren Roberts', cor: '#4a148c', genero: 'Jovem Adulto' },
-      { titulo: 'Academia dos Arquivados', autor: 'Rebecca Yarros', cor: '#01579b', genero: 'Fantasia' },
-      { titulo: 'Assistente do Vilão', autor: 'Hannah Nicole Maehrer', cor: '#33691e', genero: 'Romance' },
-      { titulo: 'O Nome do Vento', autor: 'Patrick Rothfuss', cor: '#4e342e', genero: 'Fantasia' },
-      { titulo: 'Torta Podre', autor: 'Colleen Hoover', cor: '#ad1457', genero: 'Romance' },
-      { titulo: 'Verity', autor: 'Colleen Hoover', cor: '#263238', genero: 'Suspense' },
-      { titulo: 'Babel', autor: 'R.F. Kuang', cor: '#37474f', genero: 'Fantasia' },
-      { titulo: 'O Ódio que Você Semeia', autor: 'Angie Thomas', cor: '#bf360c', genero: 'Ficção' },
-      { titulo: 'Circe', autor: 'Madeline Miller', cor: '#006064', genero: 'Mitologia' },
-    ];
+    const usuario = JSON.parse(sessionStorage.getItem('usuario'));
+    if (!usuario?.codusuario) window.location.href = 'index.html';
 
-    const CHAVE_QUERO_LER = 'bm_queroler';
-
-    function lerDoStorage() {
-      try { return JSON.parse(localStorage.getItem(CHAVE_QUERO_LER)) || []; }
-      catch { return []; }
+    function logout() {
+      sessionStorage.removeItem('usuario');
+      window.location.href = 'index.html';
     }
 
-    function removerDoStorage(titulo) {
-      const lista = lerDoStorage().filter(l => l.titulo !== titulo);
-      localStorage.setItem(CHAVE_QUERO_LER, JSON.stringify(lista));
-    }
+    let lista = [];
 
-    function montarLista() {
-      const doStorage = lerDoStorage();
-      const titlosFixos = livrosFixos.map(l => l.titulo);
-      const novos = doStorage.filter(l => !titlosFixos.includes(l.titulo));
-      return [...livrosFixos, ...novos];
+    async function carregarLista() {
+      const grade = document.getElementById('grade');
+      try {
+        const resp  = await fetch(`api/queroler.php?usuario=${usuario.codusuario}`);
+        const dados = await resp.json();
+        lista = dados.livros || [];
+        renderizar();
+      } catch (e) {
+        grade.innerHTML = '<p style="color:#a6a6a6;text-align:center;grid-column:1/-1;padding:40px 0;">Erro ao carregar lista.</p>';
+      }
     }
-
-    let lista = montarLista();
 
     function renderizar() {
       const grade = document.getElementById('grade');
       grade.innerHTML = '';
-      document.getElementById('badgeTotal').textContent = `${lista.length} livros`;
+      document.getElementById('badgeTotal').textContent = `${lista.length} livro${lista.length !== 1 ? 's' : ''}`;
+
+      if (!lista.length) {
+        grade.innerHTML = '<p style="color:#a6a6a6;text-align:center;grid-column:1/-1;padding:40px 0;">Nenhum livro na lista. Adicione em "Adicionar Livro"!</p>';
+        return;
+      }
 
       lista.forEach((l, i) => {
-        const isFixo = livrosFixos.some(f => f.titulo === l.titulo);
-        const capaHtml = l.capaUrl
-          ? `<img class="card-capa-img" src="${l.capaUrl}" alt="Capa de ${l.titulo}">`
-          : `<div class="card-capa-placeholder" style="background:${l.cor || '#c0b090'};">📖</div>`;
+        const capaHtml = l.foto
+          ? `<img class="card-capa-img" src="${l.foto}" alt="Capa de ${l.titulo}" onerror="this.outerHTML='<div class=\'card-capa-placeholder\'>📖</div>'">`
+          : `<div class="card-capa-placeholder">📖</div>`;
 
         grade.innerHTML += `
           <div class="card-livro" id="card-${i}">
-            <button class="btn-remover" onclick="remover(${i}, ${isFixo})" title="Remover">✕</button>
+            <button class="btn-remover" onclick="remover(${i})" title="Remover">✕</button>
             ${capaHtml}
             <div class="card-info">
               <div class="card-titulo">${l.titulo}</div>
-              <div class="card-autor">${l.autor}</div>
+              <div class="card-autor">${l.autor || '—'}</div>
               <span class="card-genero">${l.genero || '—'}</span>
             </div>
           </div>`;
       });
     }
 
-    function remover(i, isFixo) {
-      const titulo = lista[i].titulo;
-      if (!isFixo) removerDoStorage(titulo);
-      lista.splice(i, 1);
-      renderizar();
-      mostrarToast(`"${titulo}" removido da lista`);
+    async function remover(i) {
+      const livro = lista[i];
+      try {
+        await fetch('api/queroler.php', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usuario: usuario.codusuario, codlivro: livro.codlivro }),
+        });
+        lista.splice(i, 1);
+        renderizar();
+        mostrarToast(`"${livro.titulo}" removido da lista`);
+      } catch (e) {
+        mostrarToast('Erro ao remover livro.');
+      }
     }
 
     function mostrarToast(msg) {
@@ -161,7 +162,7 @@
       setTimeout(() => t.classList.remove('visivel'), 3000);
     }
 
-    renderizar();
+    carregarLista();
   </script>
 </body>
 </html>
