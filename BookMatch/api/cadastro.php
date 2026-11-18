@@ -21,11 +21,11 @@ if (!$nome || !$email || !$senha) {
     exit;
 }
 
-/*if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     http_response_code(400);
     echo json_encode(['erro' => 'E-mail inválido.']);
     exit;
-}*/
+}
 
 try {
     $pdo = conectar();
