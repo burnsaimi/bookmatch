@@ -2,9 +2,9 @@ name: Pipeline QAOps - BookMatch
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main ]
 
 jobs:
   quality-pipeline:
@@ -38,9 +38,9 @@ jobs:
         run: find BookMatch -name "*.php" -print0 | xargs -0 -n1 php -l
 
       - name: 5. Quality Gate 2 - Análise Estática (PHPStan)
-        run: vendor/bin/phpstan analyse BookMatch/api --level=1
+        run: php vendor/bin/phpstan analyse BookMatch/api --level=1
 
-      - name: 6. Preparar Banco de Dados e Servidor Local
+      - name: 6. Importar Banco e Subir Servidor Local
         env:
           DB_HOST: 127.0.0.1
           DB_NAME: bookmatch
@@ -57,7 +57,7 @@ jobs:
           DB_NAME: bookmatch
           DB_USER: root
           DB_PASS: root
-        run: vendor/bin/phpunit tests --log-junit test-report.xml
+        run: php vendor/bin/phpunit tests --log-junit test-report.xml
 
       - name: 8. Publicar Evidências (Artefato)
         if: always()
