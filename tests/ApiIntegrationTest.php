@@ -19,26 +19,65 @@ class ApiIntegrationTest extends TestCase
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        return ['status' => $httpCode, 'body' => (string) $response];
+        return [
+            'status' => $httpCode,
+            'body'   => (string) $response,
+            'json'   => json_decode((string) $response, true) ?? []
+        ];
     }
 
     public function testFluxoCadastroELoginPositivo(): void
     {
-        $email = 'teste_' . uniqid() . '@ufsm.br';
+        $email = 'leitor_' . uniqid() . '@ufsm.br';
+        $senha = 'senha123';
+
         $resCadastro = $this->postJson('/cadastro.php', [
-            'nome' => 'Usuario Teste',
-            'email' => $email,
-            'senha' => 'senha123',
-            'cidade' => 'Frederico Westphalen',
-            'estado' => 'RS'
+            'nome'    => 'Usuario Teste QAOps',
+            'email'   => $email,
+            'senha'   => $senha,
+            'cidade'  => 'Frederico Westphalen',
+            'uf'      => 'RS',
+            'generos' => ['Ficção Científica', 'Fantasia']
         ]);
-        $this->assertEquals(200, $resCadastro['status'], 'Erro no cadastro: ' . $resCadastro['body']);
+
+        $this->assertEquals(200, $resCadastro['status'], 'Falha no cadastro: ' . $resCadastro['body']);
+        $this->assertTrue($resCadastro['json']['sucesso'] ?? false);
 
         $resLogin = $this->postJson('/login.php', [
             'email' => $email,
+            'senha' => $senha
+        ]);
+
+        $this->assertEquals(200, $resLogin['status'], 'Falha no login: ' . $resLogin['body']);
+    }
+
+    public function testCadastroComEmailDuplicadoRetornaConflito409(): void
+    {
+        $email = 'duplicado_' . uniqid() . '@ufsm.br';
+        $dados = [
+            'nome'   => 'Usuario Duplicado',
+            'email'  => $email,
+            'senha'  => 'senha123',
+            'cidade' => 'Frederico Westphalen',
+            'uf'     => 'RS'
+        ];
+
+        $primeiro = $this->postJson('/cadastro.php', $dados);
+        $this->assertEquals(200, $primeiro['status']);
+
+        $segundo = $this->postJson('/cadastro.php', $dados);
+        $this->assertEquals(409, $segundo['status'], 'Deveria bloquear e-mail duplicado com HTTP 409');
+    }
+
+    public function testCadastroComEmailInvalidoRetornaErro400(): void
+    {
+        $res = $this->postJson('/cadastro.php', [
+            'nome'  => 'Usuario Invalido',
+            'email' => 'email-sem-arroba',
             'senha' => 'senha123'
         ]);
-        $this->assertEquals(200, $resLogin['status'], 'Erro no login: ' . $resLogin['body']);
+
+        $this->assertEquals(400, $res['status']);
     }
 
     public function testLoginComCredenciaisInvalidasCasoNegativo(): void
@@ -47,6 +86,8 @@ class ApiIntegrationTest extends TestCase
             'email' => 'naoexiste@ufsm.br',
             'senha' => 'senhaerrada'
         ]);
+
+        $this->assertNotEquals(200, $res['status']);
         $this->assertNotEquals(500, $res['status']);
     }
 }
