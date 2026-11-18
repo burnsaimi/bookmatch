@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BookMatch – Configurações</title>
+  <style>
+    @font-face { font-family: 'Radiant Charisma'; src: url('fonts/RadiantCharismaDEMO-Medium.ttf') format('truetype'); }
+    @font-face { font-family: 'Quicksand'; src: url('fonts/Quicksand-Bold.ttf') format('truetype'); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { height: 100vh; display: flex; font-family: 'Quicksand', sans-serif; background-color: #fffdf3; overflow: hidden; }
+
+    .barra-lateral { width: 280px; min-width: 280px; background-color: #701d1c; display: flex; flex-direction: column; padding: 50px 0 0 0; position: relative; overflow: hidden; z-index: 1; }
+    .barra-lateral::before { content: ''; position: absolute; bottom: -80px; left: -80px; width: 300px; height: 300px; background: rgba(173,114,114,0.22); border-radius: 45% 55% 40% 60%; pointer-events: none; }
+    .barra-lateral::after { content: ''; position: absolute; top: -40px; right: -40px; width: 180px; height: 180px; background: rgba(173,114,114,0.22); border-radius: 60% 40% 55% 45%; pointer-events: none; }
+    .container-nome-sistema { padding: 0 30px 50px; z-index: 2; }
+    .container-nome-sistema h1 { font-family: 'Radiant Charisma'; font-size: 36px; line-height: 0.9; }
+    .container-nome-sistema h1 span:first-child { color: #bcb24d; }
+    .container-nome-sistema h1 span:last-child  { color: #e6a921; }
+    .rotulo-nav { font-size: 10px; letter-spacing: 1.5px; color: rgba(255,255,255,0.5); padding: 20px 30px 10px; z-index: 2; font-weight: bold; }
+    .item-nav { display: flex; align-items: center; gap: 12px; padding: 12px 30px; color: #fff; font-size: 14px; cursor: pointer; transition: 0.3s; z-index: 2; text-decoration: none; }
+    .item-nav:hover { background: rgba(255,255,255,0.1); }
+    .item-nav.ativo { background: rgba(255,255,255,0.15); font-weight: bold; border-left: 4px solid #e6a921; }
+    .notificacao { margin-left: auto; background: #e4568b; color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 10px; }
+
+    /* Rodapé do menu lateral - Botão Sair */
+    .container-conta-nav {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      z-index: 2;
+      padding-bottom: 20px;
+    }
+    .btn-sair-lateral {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 30px;
+      color: #ffffff;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.3s;
+      text-decoration: none;
+      background: transparent;
+      border: none;
+      width: 100%;
+      text-align: left;
+      font-family: 'Quicksand', sans-serif;
+      font-weight: bold;
+    }
+    .btn-sair-lateral:hover {
+      background: rgba(255,255,255,0.1);
+    }
+  
+    .conteudo { flex: 1; padding: 40px; overflow-y: auto; background-color: #fffdf3; }
+    .topo { margin-bottom: 6px; }
+    .topo h2 { font-family: 'Radiant Charisma'; font-size: 42px; color: #701d1c; }
+    .topo-sub { font-size: 13px; color: #a6a6a6; margin-bottom: 24px; }
+
+    .abas { display: flex; gap: 8px; margin-bottom: 28px; }
+    .aba { padding: 8px 24px; border-radius: 20px; border: none; font-family: 'Quicksand'; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    .aba.ativa { background: #701d1c; color: #fff; }
+    .aba.inativa { background: #ede9d3; color: #a6a6a6; }
+    .aba.inativa:hover { background: #e0dbc8; }
+
+    .secao { display: none; }
+    .secao.ativa { display: block; }
+
+    .card { background: #ede9d3; border-radius: 18px; padding: 24px 28px; margin-bottom: 20px; }
+
+    .perfil-topo { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+    .avatar-perfil { width: 56px; height: 56px; border-radius: 50%; background: #e6a921; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; background-size: cover; background-position: center; overflow: hidden; }
+    .perfil-nome { font-size: 18px; font-weight: bold; color: #2c2c2c; }
+    .perfil-sub { font-size: 12px; color: #a6a6a6; margin-top: 2px; }
+    .btn-editar { margin-left: auto; padding: 8px 18px; border-radius: 20px; border: 1.5px solid #a6a6a6; background: transparent; font-family: 'Quicksand'; font-size: 12px; font-weight: bold; color: #a6a6a6; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
+    .btn-editar:hover { border-color: #701d1c; color: #701d1c; }
+
+    .grid-config { display: grid; grid-template-columns: 1fr 1px 1fr; gap: 0; }
+    .col-config { padding: 0 28px; }
+    .col-config:first-child { padding-left: 0; }
+    .col-config:last-child { padding-right: 0; }
+    .divisor-vertical { background: #d4cdb8; }
+    .col-titulo { font-size: 14px; font-weight: bold; color: #701d1c; text-align: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1.5px solid #d4cdb8; }
+
+    .linha-toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+    .toggle-label { font-size: 13px; font-weight: bold; color: #2c2c2c; }
+    .toggle-sub { font-size: 11px; color: #a6a6a6; margin-top: 2px; }
+    .toggle-wrap { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+    .toggle-wrap input { opacity: 0; width: 0; height: 0; }
+    .toggle-track { position: absolute; inset: 0; border-radius: 12px; background: #c0b090; cursor: pointer; transition: background 0.2s; }
+    .toggle-wrap input:checked + .toggle-track { background: #e6a921; }
+    .toggle-thumb { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: left 0.2s; pointer-events: none; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+    .toggle-wrap input:checked ~ .toggle-thumb { left: 23px; }
+
+    .linha-select { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .select-label { font-size: 13px; font-weight: bold; color: #2c2c2c; }
+    .select-config { padding: 6px 12px; border-radius: 20px; border: 1.5px solid #c0b090; background: #fffdf3; font-family: 'Quicksand'; font-size: 12px; font-weight: bold; color: #2c2c2c; cursor: pointer; appearance: none; padding-right: 28px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23a6a6a6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
+
+    .generos-titulo { font-size: 13px; font-weight: bold; color: #2c2c2c; margin-bottom: 12px; }
+    .generos-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .tag-genero { padding: 5px 14px; border-radius: 20px; background: #e6a921; color: #fff; font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    .tag-genero:hover { background: #c8851a; }
+
+    .conta-header { display: flex; align-items: center; gap: 14px; padding-bottom: 20px; margin-bottom: 4px; border-bottom: 1.5px solid #d4cdb8; }
+    .conta-icone { width: 44px; height: 44px; border-radius: 12px; background: #e6a921; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+    .conta-titulo { font-size: 16px; font-weight: bold; color: #2c2c2c; }
+    .conta-sub { font-size: 12px; color: #a6a6a6; margin-top: 2px; }
+    .linha-conta { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid #d4cdb8; }
+    .linha-conta:last-of-type { border-bottom: none; }
+    .conta-item-nome { font-size: 14px; font-weight: bold; color: #2c2c2c; }
+    .conta-item-nome.perigo { color: #b33a3a; }
+    .conta-item-desc { font-size: 12px; color: #a6a6a6; margin-top: 2px; }
+    .btn-acao { padding: 8px 22px; border-radius: 20px; border: 1.5px solid #a6a6a6; background: transparent; font-family: 'Quicksand'; font-size: 13px; font-weight: bold; color: #2c2c2c; cursor: pointer; transition: 0.2s; }
+    .btn-acao:hover { border-color: #701d1c; color: #701d1c; }
+    .btn-acao.perigo { border-color: #b33a3a; color: #b33a3a; }
+    .btn-acao.perigo:hover { background: #b33a3a; color: #fff; }
+    .linha-sair { display: flex; justify-content: flex-end; padding-top: 16px; }
+    .btn-sair { background: transparent; border: none; font-family: 'Quicksand'; font-size: 14px; font-weight: bold; color: #b33a3a; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: opacity 0.2s; }
+    .btn-sair:hover { opacity: 0.7; }
+
+    .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background-color: #701d1c; color: white; padding: 12px 28px; border-radius: 30px; font-size: 14px; font-family: 'Quicksand'; font-weight: 700; opacity: 0; transition: opacity 0.3s; z-index: 9999; pointer-events: none; }
+    .toast.visivel { opacity: 1; }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(40, 10, 10, 0.45); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
+    .modal-overlay.aberto { opacity: 1; pointer-events: all; }
+    .modal { background: #fffdf3; border-radius: 24px; padding: 36px 40px; width: 520px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 60px rgba(112,29,28,0.18); transform: translateY(18px) scale(0.97); transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease; opacity: 0; position: relative; }
+    .modal-overlay.aberto .modal { transform: translateY(0) scale(1); opacity: 1; }
+    .modal-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28px; }
+    .modal-icone-titulo { display: flex; align-items: center; gap: 14px; }
+    .modal-icone { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+    .modal-icone.amarelo { background: #e6a921; }
+    .modal-icone.vermelho { background: #b33a3a; }
+    .modal-icone.verde { background: #4caf50; }
+    .modal-icone.azul { background: #3a7ab3; }
+    .modal-icone.cinza { background: #8e8e8e; }
+    .modal-titulo { font-size: 20px; font-weight: bold; color: #2c2c2c; }
+    .modal-subtitulo { font-size: 12px; color: #a6a6a6; margin-top: 3px; }
+    .btn-fechar-modal { background: #ede9d3; border: none; border-radius: 50%; width: 32px; height: 32px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #888; transition: background 0.2s; flex-shrink: 0; }
+    .btn-fechar-modal:hover { background: #d4cdb8; color: #701d1c; }
+    .modal-divisor { height: 1px; background: #ede9d3; margin: 0 -40px 24px; }
+    .campo-grupo { margin-bottom: 20px; }
+    .campo-label { display: block; font-size: 12px; font-weight: bold; color: #701d1c; margin-bottom: 7px; letter-spacing: 0.5px; text-transform: uppercase; }
+    .campo-input { width: 100%; padding: 12px 16px; border: 1.5px solid #d4cdb8; border-radius: 12px; background: #fffdf3; font-family: 'Quicksand'; font-size: 14px; font-weight: bold; color: #2c2c2c; outline: none; transition: border-color 0.2s; }
+    .campo-input:focus { border-color: #701d1c; }
+    .campo-input::placeholder { color: #c0b090; font-weight: normal; }
+    .campo-textarea { width: 100%; padding: 12px 16px; border: 1.5px solid #d4cdb8; border-radius: 12px; background: #fffdf3; font-family: 'Quicksand'; font-size: 14px; color: #2c2c2c; outline: none; transition: border-color 0.2s; resize: vertical; min-height: 90px; }
+    .campo-textarea:focus { border-color: #701d1c; }
+    .campo-textarea::placeholder { color: #c0b090; }
+    .campo-hint { font-size: 11px; color: #a6a6a6; margin-top: 5px; }
+    .forca-senha { margin-top: 8px; }
+    .forca-barra-wrap { display: flex; gap: 5px; margin-bottom: 5px; }
+    .forca-seg { height: 4px; flex: 1; border-radius: 4px; background: #d4cdb8; transition: background 0.3s; }
+    .forca-seg.fraca { background: #b33a3a; }
+    .forca-seg.media { background: #e6a921; }
+    .forca-seg.forte { background: #4caf50; }
+    .forca-texto { font-size: 11px; color: #a6a6a6; }
+    .aviso-perigo { background: #fdf0f0; border: 1.5px solid #e8b4b4; border-radius: 12px; padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start; margin-bottom: 22px; }
+    .aviso-perigo-icone { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .aviso-perigo-texto { font-size: 13px; color: #8b2020; line-height: 1.5; }
+    .aviso-perigo-texto strong { display: block; margin-bottom: 4px; }
+    .aviso-info { background: #f0f5fd; border: 1.5px solid #b4c9e8; border-radius: 12px; padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start; margin-bottom: 22px; }
+    .aviso-info-icone { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .aviso-info-texto { font-size: 13px; color: #1a4a8b; line-height: 1.5; }
+    .aviso-info-texto strong { display: block; margin-bottom: 4px; }
+    .aviso-amarelo { background: #fdf8e8; border: 1.5px solid #e8d4a0; border-radius: 12px; padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start; margin-bottom: 22px; }
+    .aviso-amarelo-icone { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .aviso-amarelo-texto { font-size: 13px; color: #7a5a00; line-height: 1.5; }
+    .aviso-amarelo-texto strong { display: block; margin-bottom: 4px; }
+    .modal-footer { display: flex; gap: 12px; justify-content: flex-end; margin-top: 28px; padding-top: 22px; border-top: 1.5px solid #ede9d3; }
+    .btn-modal-cancelar { padding: 10px 24px; border-radius: 20px; border: 1.5px solid #d4cdb8; background: transparent; font-family: 'Quicksand'; font-size: 13px; font-weight: bold; color: #888; cursor: pointer; transition: 0.2s; }
+    .btn-modal-cancelar:hover { border-color: #a6a6a6; color: #2c2c2c; }
+    .btn-modal-confirmar { padding: 10px 28px; border-radius: 20px; border: none; background: #701d1c; font-family: 'Quicksand'; font-size: 13px; font-weight: bold; color: #fff; cursor: pointer; transition: 0.2s; }
+    .btn-modal-confirmar:hover { background: #8a2322; }
+    .btn-modal-confirmar.perigo { background: #b33a3a; }
+    .btn-modal-confirmar.perigo:hover { background: #922e2e; }
+    .btn-modal-confirmar.verde { background: #3d9140; }
+    .btn-modal-confirmar.verde:hover { background: #2e7031; }
+    .avatar-upload-area { display: flex; align-items: center; gap: 20px; margin-bottom: 22px; padding: 20px; background: #ede9d3; border-radius: 14px; }
+    .avatar-preview { width: 72px; height: 72px; border-radius: 50%; background: #e6a921; display: flex; align-items: center; justify-content: center; font-size: 32px; flex-shrink: 0; background-size: cover; background-position: center; overflow: hidden; }
+    .avatar-upload-info { flex: 1; }
+    .avatar-upload-nome { font-size: 13px; font-weight: bold; color: #2c2c2c; margin-bottom: 5px; }
+    .avatar-upload-hint { font-size: 11px; color: #a6a6a6; }
+    .btn-trocar-foto { padding: 8px 18px; border-radius: 16px; border: 1.5px solid #a6a6a6; background: #fffdf3; font-family: 'Quicksand'; font-size: 12px; font-weight: bold; color: #888; cursor: pointer; transition: 0.2s; margin-top: 8px; }
+    .btn-trocar-foto:hover { border-color: #701d1c; color: #701d1c; }
+    .campo-confirmacao-texto { font-size: 13px; color: #2c2c2c; margin-bottom: 10px; line-height: 1.5; }
+    .campo-confirmacao-texto code { background: #ede9d3; padding: 2px 8px; border-radius: 6px; font-family: monospace; font-size: 13px; color: #701d1c; font-weight: bold; }
+    .export-lista { list-style: none; margin-bottom: 20px; }
+    .export-lista li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #ede9d3; font-size: 13px; color: #2c2c2c; }
+    .export-lista li:last-child { border-bottom: none; }
+    .export-lista li span.icone { font-size: 16px; }
+    .export-lista li span.qtd { margin-left: auto; color: #a6a6a6; font-size: 12px; }
+    .pausar-status { display: flex; align-items: center; justify-content: space-between; background: #ede9d3; border-radius: 14px; padding: 16px 20px; margin-bottom: 20px; }
+    .pausar-status-info { font-size: 13px; font-weight: bold; color: #2c2c2c; }
+    .pausar-status-sub { font-size: 11px; color: #a6a6a6; margin-top: 3px; }
+    .status-badge { padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+    .status-badge.ativo { background: #d4f1d5; color: #2e7031; }
+    .status-badge.pausado { background: #fde8d0; color: #995200; }
+    .campo-linha { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .campo-senha-wrap { position: relative; }
+    .btn-olho { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px; color: #a6a6a6; transition: color 0.2s; }
+    .btn-olho:hover { color: #701d1c; }
+    .campo-senha-wrap .campo-input { padding-right: 44px; }
+  </style>
+</head>
+<body>
+
+  <aside class="barra-lateral">
+    <div class="container-nome-sistema">
+      <h1><span>book</span><br><span>match</span></h1>
+    </div>
+    <span class="rotulo-nav">PRINCIPAL</span>
+    <a class="item-nav" href="estante.html">📚 Minha Estante</a>
+    <a class="item-nav" href="adicionarlivro.html">🔍 Adicionar Livro</a>
+    <a class="item-nav" href="descobrir.html">🔎 Descobrir Livros</a>
+    <a class="item-nav" href="curtidas.html">💕 Curtidas</a>
+    <a class="item-nav" href="mensagens.html">💬 Mensagens <span class="notificacao" id="badgeMsgs" style="display:none;">0</span></a>
+    <a class="item-nav ativo" href="configuracao.html">⚙️ Configurações</a>
+    <span class="rotulo-nav">SUAS LISTAS</span>
+    <a class="item-nav" href="matches.html">❤️ Matches</a>
+    <a class="item-nav" href="troca.html">✅ Trocas</a>
+    <a class="item-nav" href="queroler.html">🛒 Quero ler</a>
+
+    <span class="rotulo-nav" id="rotuloAdmin" style="display:none;">ADMINISTRAÇÃO</span>
+    <a class="item-nav" id="navAdmin" href="configuracaoadm.html" style="display:none;">🛡️ Painel Admin</a>
+
+    <div class="container-conta-nav">
+      <span class="rotulo-nav">CONTA</span>
+      <button class="btn-sair-lateral" onclick="logoutDoSistema()">🚪 Sair</button>
+    </div>
+  </aside>
+
+  <div class="conteudo">
+    <div class="topo">
+      <h2>Configurações</h2>
+      <p class="topo-sub">Gerencie sua conta e preferências</p>
+    </div>
+
+    <div class="abas">
+      <button class="aba ativa"   onclick="trocarAba('preferencias', this)">Preferências</button>
+      <button class="aba inativa" onclick="trocarAba('conta', this)">Conta e segurança</button>
+    </div>
+
+    <div class="secao ativa" id="secao-preferencias">
+      <div class="card">
+        <div class="perfil-topo">
+          <div class="avatar-perfil" id="card-avatar">👤</div>
+          <div>
+            <div class="perfil-nome" id="card-nome">Luis Henrique</div>
+            <div class="perfil-sub" id="card-sub">Frederico Westphalen, RS &nbsp;·&nbsp; 38 livros &nbsp;·&nbsp; ⭐ 5,0</div>
+          </div>
+          <button class="btn-editar" onclick="abrirModal('modal-editar-perfil')">✏️ Editar perfil</button>
+        </div>
+
+        <div class="grid-config">
+          <div class="col-config">
+            <div class="col-titulo">Privacidade</div>
+            <div class="linha-toggle">
+              <div>
+                <div class="toggle-label">Estante pública</div>
+                <div class="toggle-sub">Outros usuários podem ver seus livros</div>
+              </div>
+              <label class="toggle-wrap">
+                <input type="checkbox" checked onchange="salvarToggle('estante', this.checked)">
+                <div class="toggle-track"></div><div class="toggle-thumb"></div>
+              </label>
+            </div>
+            <div class="linha-toggle">
+              <div>
+                <div class="toggle-label">Mostrar localização</div>
+                <div class="toggle-sub">Exibe a sua cidade no perfil</div>
+              </div>
+              <label class="toggle-wrap">
+                <input type="checkbox" checked onchange="salvarToggle('localizacao', this.checked)">
+                <div class="toggle-track"></div><div class="toggle-thumb"></div>
+              </label>
+            </div>
+            <div class="linha-toggle">
+              <div>
+                <div class="toggle-label">Mostrar avaliação</div>
+                <div class="toggle-sub">Exibe a sua nota média de leitor</div>
+              </div>
+              <label class="toggle-wrap">
+                <input type="checkbox" onchange="salvarToggle('avaliacao', this.checked)">
+                <div class="toggle-track"></div><div class="toggle-thumb"></div>
+              </label>
+            </div>
+            <div class="linha-toggle">
+              <div>
+                <div class="toggle-label">Mostrar n.º de livros</div>
+                <div class="toggle-sub">Exibe a quantidade da sua estante</div>
+              </div>
+              <label class="toggle-wrap">
+                <input type="checkbox" onchange="salvarToggle('livros', this.checked)">
+                <div class="toggle-track"></div><div class="toggle-thumb"></div>
+              </label>
+            </div>
+          </div>
+
+          <div class="divisor-vertical"></div>
+
+          <div class="col-config">
+            <div class="col-titulo">Descoberta</div>
+            <div class="linha-select">
+              <span class="select-label">Ordenar por</span>
+              <select class="select-config" onchange="mostrarToast('✅ Preferência salva!')">
+                <option>Compatibilidade</option>
+                <option>Distância</option>
+                <option>Avaliação</option>
+                <option>Livros em comum</option>
+              </select>
+            </div>
+            <div class="linha-select">
+              <span class="select-label">Distância máxima</span>
+              <select class="select-config" onchange="mostrarToast('✅ Preferência salva!')">
+                <option>Todo o Brasil</option>
+                <option>50 km</option>
+                <option>100 km</option>
+                <option>200 km</option>
+                <option>500 km</option>
+              </select>
+            </div>
+            <div class="generos-titulo">Gêneros de interesse</div>
+            <div class="generos-row" id="generos-row"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="secao" id="secao-conta">
+      <div class="card">
+        <div class="conta-header">
+          <div class="conta-icone">🔒</div>
+          <div>
+            <div class="conta-titulo">Conta e segurança</div>
+            <div class="conta-sub">Senha, dados e privacidade</div>
+          </div>
+        </div>
+
+        <div class="linha-conta">
+          <div>
+            <div class="conta-item-nome">Alterar senha</div>
+            <div class="conta-item-desc">Última alteração há 3 meses</div>
+          </div>
+          <button class="btn-acao" onclick="abrirModal('modal-alterar-senha')">Alterar</button>
+        </div>
+
+        <div class="linha-conta">
+          <div>
+            <div class="conta-item-nome">Exportar meus dados</div>
+            <div class="conta-item-desc">Baixe toda sua estante em CSV</div>
+          </div>
+          <button class="btn-acao" onclick="abrirModal('modal-exportar')">Exportar</button>
+        </div>
+
+        <div class="linha-conta">
+          <div>
+            <div class="conta-item-nome">Pausar conta</div>
+            <div class="conta-item-desc">Você não aparece nas descobertas</div>
+          </div>
+          <button class="btn-acao" onclick="abrirModal('modal-pausar')">Pausar</button>
+        </div>
+
+        <div class="linha-conta">
+          <div>
+            <div class="conta-item-nome perigo">Excluir conta</div>
+            <div class="conta-item-desc">Ação irreversível — todos os dados serão apagados</div>
+          </div>
+          <button class="btn-acao perigo" onclick="abrirModal('modal-excluir')">Excluir conta</button>
+        </div>
+
+        <div class="linha-sair">
+          <button class="btn-sair" onclick="abrirModal('modal-sair')">Sair 🚪</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="modal-overlay" id="modal-editar-perfil" onclick="fecharModalFora(event, this)">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-icone-titulo">
+          <div class="modal-icone amarelo">✏️</div>
+          <div>
+            <div class="modal-titulo">Editar perfil</div>
+            <div class="modal-subtitulo">Atualize suas informações pessoais</div>
+          </div>
+        </div>
+        <button class="btn-fechar-modal" onclick="fecharModal('modal-editar-perfil')">✕</button>
+      </div>
+
+      <div class="avatar-upload-area">
+        <div class="avatar-preview" id="modal-avatar-preview">👤</div>
+        <div class="avatar-upload-info">
+          <div class="avatar-upload-nome">Foto de perfil</div>
+          <div class="avatar-upload-hint">JPG ou PNG · máximo 5 MB · recomendado 200×200 px</div>
+          <button class="btn-trocar-foto" onclick="document.getElementById('input-foto-perfil').click()">📷 Trocar foto</button>
+          <input type="file" id="input-foto-perfil" accept="image/png, image/jpeg" style="display: none;" onchange="renderizarVisualizacaoFoto(this)">
+        </div>
+      </div>
+
+      <div class="campo-linha">
+        <div class="campo-grupo">
+          <label class="campo-label">Nome</label>
+          <input class="campo-input" type="text" id="input-nome" value="" placeholder="Seu nome">
+        </div>
+        <div class="campo-grupo">
+          <label class="campo-label">Sobrenome</label>
+          <input class="campo-input" type="text" id="input-sobrenome" value="" placeholder="Sobrenome">
+        </div>
+      </div>
+
+      <div class="campo-grupo">
+        <label class="campo-label">Apelido / nome de exibição</label>
+        <input class="campo-input" type="text" id="input-apelido" value="" placeholder="Como quer ser chamado">
+        <div class="campo-hint">Este nome aparece para outros usuários.</div>
+      </div>
+
+      <div class="campo-grupo">
+        <label class="campo-label">Bio</label>
+        <textarea class="campo-textarea" id="input-bio" placeholder="Fale um pouco sobre você e seus gostos literários…"></textarea>
+        <div class="campo-hint">Máximo de 160 caracteres.</div>
+      </div>
+
+      <div class="campo-linha">
+        <div class="campo-grupo">
+          <label class="campo-label">Cidade</label>
+          <input class="campo-input" type="text" id="input-cidade" value="" placeholder="Sua cidade">
+        </div>
+        <div class="campo-grupo">
+          <label class="campo-label">State</label>
+          <input class="campo-input" type="text" id="input-estado" value="" placeholder="UF">
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-modal-cancelar" onclick="fecharModal('modal-editar-perfil')">Cancelar</button>
+        <button class="btn-modal-confirmar" onclick="confirmarEditarPerfil()">💾 Salvar alterações</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-alterar-senha" onclick="fecharModalFora(event, this)">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-icone-titulo">
+          <div class="modal-icone amarelo">🔑</div>
+          <div>
+            <div class="modal-titulo">Alterar senha</div>
+            <div class="modal-subtitulo">Última alteração há 3 meses</div>
+          </div>
+        </div>
+        <button class="btn-fechar-modal" onclick="fecharModal('modal-alterar-senha')">✕</button>
+      </div>
+
+      <div class="aviso-info">
+        <span class="aviso-info-icone">💡</span>
+        <div class="aviso-info-texto">
+          <strong>Dica de segurança</strong>
+          Use ao menos 8 caracteres, combinando letras maiúsculas, números e símbolos para uma senha forte.
+        </div>
+      </div>
+
+      <div class="campo-grupo">
+        <label class="campo-label">Senha atual</label>
+        <div class="campo-senha-wrap">
+          <input class="campo-input" type="password" id="senha-atual" placeholder="Digite sua senha atual">
+          <button class="btn-olho" onclick="toggleSenha('senha-atual', this)">👁️</button>
+        </div>
+      </div>
+
+      <div class="campo-grupo">
+        <label class="campo-label">Nova senha</label>
+        <div class="campo-senha-wrap">
+          <input class="campo-input" type="password" id="senha-nova" placeholder="Escolha uma nova senha" oninput="avaliarForca(this.value)">
+          <button class="btn-olho" onclick="toggleSenha('senha-nova', this)">👁️</button>
+        </div>
+        <div class="forca-senha" id="forca-senha-wrap" style="display:none">
+          <div class="forca-barra-wrap">
+            <div class="forca-seg" id="forca-1"></div>
+            <div class="forca-seg" id="forca-2"></div>
+            <div class="forca-seg" id="forca-3"></div>
+          </div>
+          <div class="forca-texto" id="forca-texto">Fraca</div>
+        </div>
+      </div>
+
+      <div class="campo-grupo">
+        <label class="campo-label">Confirmar nova senha</label>
+        <div class="campo-senha-wrap">
+          <input class="campo-input" type="password" id="senha-confirmar" placeholder="Repita a nova senha">
+          <button class="btn-olho" onclick="toggleSenha('senha-confirmar', this)">👁️</button>
+        </div>
+        <div class="campo-hint" id="hint-confirmar"></div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-modal-cancelar" onclick="fecharModal('modal-alterar-senha')">Cancelar</button>
+        <button class="btn-modal-confirmar" onclick="confirmarAlterarSenha()">🔒 Alterar senha</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-exportar" onclick="fecharModalFora(event, this)">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-icone-titulo">
+          <div class="modal-icone azul">📥</div>
+          <div>
+            <div class="modal-titulo">Exportar meus dados</div>
+            <div class="modal-subtitulo">Baixe tudo que temos sobre você</div>
+          </div>
+        </div>
+        <button class="btn-fechar-modal" onclick="fecharModal('modal-exportar')">✕</button>
+      </div>
+
+      <div class="aviso-info">
+        <span class="aviso-info-icone">📋</span>
+        <div class="aviso-info-texto">
+          <strong>O que será exportado</strong>
+          Seus dados serão compactados em um arquivo CSV e o download iniciará automaticamente.
+        </div>
+      </div>
+
+      <ul class="export-lista">
+        <li><span class="icone">📚</span> Minha estante (livros cadastrados) <span class="qtd">38 itens</span></li>
+        <li><span class="icone">❤️</span> Matches e curtidas <span class="qtd">14 itens</span></li>
+        <li><span class="icone">✅</span> Histórico de trocas <span class="qtd">6 itens</span></li>
+        <li><span class="icone">🛒</span> Lista "Quero ler" <span class="qtd">22 itens</span></li>
+        <li><span class="icone">👤</span> Dados do perfil <span class="qtd">incluído</span></li>
+      </ul>
+
+      <div class="campo-hint" style="margin-bottom: 0;">O arquivo não inclui mensagens ou senhas.</div>
+
+      <div class="modal-footer">
+        <button class="btn-modal-cancelar" onclick="fecharModal('modal-exportar')">Cancelar</button>
+        <button class="btn-modal-confirmar verde" onclick="confirmarExportar()">📥 Baixar arquivo</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-pausar" onclick="fecharModalFora(event, this)">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-icone-titulo">
+          <div class="modal-icone cinza">⏸️</div>
+          <div>
+            <div class="modal-titulo">Pausar conta</div>
+            <div class="modal-subtitulo">Fique invisível temporariamente</div>
+          </div>
+        </div>
+        <button class="btn-fechar-modal" onclick="fecharModal('modal-pausar')">✕</button>
+      </div>
+
+      <div class="pausar-status">
+        <div>
+          <div class="pausar-status-info">Status atual da conta</div>
+          <div class="pausar-status-sub">Você está visível nas descobertas</div>
+        </div>
+        <span class="status-badge ativo" id="pausar-badge">● Ativa</span>
+      </div>
+
+      <div class="aviso-amarelo">
+        <span class="aviso-amarelo-icone">⚠️</span>
+        <div class="aviso-amarelo-texto">
+          <strong>O que acontece ao pausar?</strong>
+          Seu perfil ficará oculto nas buscas e descobertas. Seus matches e conversas existentes continuarão acessíveis. Você pode reativar quando quiser.
+        </div>
+      </div>
+
+      <div class="campo-grupo">
+        <label class="campo-label">Por quanto tempo? (opcional)</label>
+        <select class="campo-input" style="cursor:pointer;">
+          <option value="">Sem prazo definido</option>
+          <option>1 semana</option>
+          <option>2 semanas</option>
+          <option>1 mês</option>
+          <option>3 meses</option>
+        </select>
+        <div class="campo-hint">Após o prazo, sua conta será reativada automaticamente.</div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-modal-cancelar" onclick="fecharModal('modal-pausar')">Cancelar</button>
+        <button class="btn-modal-confirmar" style="background:#8e8e8e;" onclick="confirmarPausar()">⏸️ Pausar conta</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-excluir" onclick="fecharModalFora(event, this)">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-icone-titulo">
+          <div class="modal-icone vermelho">🗑️</div>
+          <div>
+            <div class="modal-titulo">Excluir conta</div>
+            <div class="modal-subtitulo">Esta ação é permanente e irreversível</div>
+          </div>
+        </div>
+        <button class="btn-fechar-modal" onclick="fecharModal('modal-excluir')">✕</button>
+      </div>
+
+      <div class="aviso-perigo">
+        <span class="aviso-perigo-icone">🚨</span>
+        <div class="aviso-perigo-texto">
+          <strong>Você tem certeza absoluta?</strong>
+          Ao excluir sua conta, todos os seus dados serão permanentemente apagados: estante, matches, conversas, histórico de trocas e perfil. Não será possível recuperar nada depois.
+        </div>
+      </div>
+
+      <ul class="export-lista" style="margin-bottom: 20px;">
+        <li><span class="icone">📚</span> 38 livros cadastrados serão removidos</li>
+        <li><span class="icone">❤️</span> 14 matches e curtidas serão removidos</li>
+        <li><span class="icone">💬</span> Todas as conversas serão apagadas</li>
+        <li><span class="icone">✅</span> Histórico de trocas será perdido</li>
+      </ul>
+
+      <div class="campo-grupo">
+        <p class="campo-confirmacao-texto">
+          Para confirmar, digite <code>EXCLUIR MINHA CONTA</code> no campo abaixo:
+        </p>
+        <input class="campo-input" type="text" id="input-confirmar-exclusao" placeholder="EXCLUIR MINHA CONTA" oninput="verificarConfirmacaoExclusao(this.value)" style="border-color: #e8b4b4;">
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-modal-cancelar" onclick="fecharModal('modal-excluir')">Cancelar, quero ficar</button>
+        <button class="btn-modal-confirmar perigo" id="btn-confirmar-exclusao" onclick="confirmarExcluirConta()" disabled style="opacity:0.4; cursor:not-allowed;">
+          🗑️ Excluir permanentemente
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-sair" onclick="fecharModalFora(event, this)">
+    <div class="modal" style="width: 420px;">
+      <div class="modal-header">
+        <div class="modal-icone-titulo">
+          <div class="modal-icone cinza">🚪</div>
+          <div>
+            <div class="modal-titulo">Sair da conta</div>
+            <div class="modal-subtitulo">Você será desconectado do BookMatch</div>
+          </div>
+        </div>
+        <button class="btn-fechar-modal" onclick="fecharModal('modal-sair')">✕</button>
+      </div>
+
+      <div class="aviso-amarelo">
+        <span class="aviso-amarelo-icone">👋</span>
+        <div class="aviso-amarelo-texto">
+          <strong>Tem certeza que quer sair?</strong>
+          Suas configurações e dados ficam salvos. Você pode entrar novamente quando quiser.
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-modal-cancelar" onclick="fecharModal('modal-sair')">Ficar por aqui</button>
+        <button class="btn-modal-confirmar perigo" onclick="logoutDoSistema()">🚪 Sim, sair</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const usuario = JSON.parse(sessionStorage.getItem('usuario'));
+    if (!usuario?.codusuario) window.location.href = 'index.html';
+
+    if (usuario.tipo_usuario === 'ADMIN') {
+      const r = document.getElementById('rotuloAdmin');
+      const n = document.getElementById('navAdmin');
+      if (r) r.style.display = '';
+      if (n) n.style.display = '';
+    }
+
+    const todosGeneros = ['HQ/Mangás','Fantasia','Ficção Científica','Terror','Suspense','Autoajuda','Clássicos','Romance','Aventura','Biografia'];
+    const generosAtivos = new Set();
+
+    function renderGeneros() {
+      document.getElementById('generos-row').innerHTML = todosGeneros.map(g => {
+        const ativo = generosAtivos.has(g);
+        return `<span class="tag-genero" style="${ativo ? '' : 'background:#c0b090;'}" onclick="toggleGenero('${g}', this)">${g}</span>`;
+      }).join('');
+    }
+
+    function toggleGenero(g, el) {
+      if (generosAtivos.has(g)) {
+        generosAtivos.delete(g); el.style.background = '#c0b090';
+        mostrarToast(`➖ ${g} removido`);
+      } else {
+        generosAtivos.add(g); el.style.background = '#e6a921';
+        mostrarToast(`➕ ${g} adicionado`);
+      }
+    }
+
+    function trocarAba(id, btn) {
+      document.querySelectorAll('.secao').forEach(s => s.classList.remove('ativa'));
+      document.querySelectorAll('.aba').forEach(b => { b.classList.remove('ativa'); b.classList.add('inativa'); });
+      document.getElementById('secao-' + id).classList.add('ativa');
+      btn.classList.add('ativa'); btn.classList.remove('inativa');
+    }
+
+    const mapaCampoConfig = {
+      estante:      'estante_publica',
+      localizacao:  'mostrar_localizacao',
+      avaliacao:    'mostrar_avaliacao',
+    };
+    async function salvarToggle(campo, valor) {
+      const coluna = mapaCampoConfig[campo];
+      if (coluna) {
+        try {
+          const body = { usuario: usuario.codusuario };
+          body[coluna] = valor ? 1 : 0;
+          await fetch('api/configuracao.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+        } catch (e) { /* segue mostrando toast */ }
+      }
+      mostrarToast(`✅ ${campo.charAt(0).toUpperCase() + campo.slice(1)} ${valor ? 'ativado' : 'desativado'}`);
+    }
+
+    function mostrarToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('visivel');
+      setTimeout(() => t.classList.remove('visivel'), 3000);
+    }
+
+    function abrirModal(id) {
+      document.getElementById(id).classList.add('aberto');
+      document.body.style.overflow = 'hidden';
+    }
+    function fecharModal(id) {
+      document.getElementById(id).classList.remove('aberto');
+      document.body.style.overflow = '';
+    }
+    function fecharModalFora(event, overlay) {
+      if (event.target === overlay) fecharModal(overlay.id);
+    }
+
+    function toggleSenha(id, btn) {
+      const input = document.getElementById(id);
+      if (input.type === 'password') { input.type = 'text'; btn.textContent = '🙈'; }
+      else { input.type = 'password'; btn.textContent = '👁️'; }
+    }
+
+    function avaliarForca(senha) {
+      const wrap = document.getElementById('forca-senha-wrap');
+      const texto = document.getElementById('forca-texto');
+      const segs = [document.getElementById('forca-1'), document.getElementById('forca-2'), document.getElementById('forca-3')];
+
+      if (!senha) { wrap.style.display = 'none'; return; }
+      wrap.style.display = 'block';
+
+      let pontos = 0;
+      if (senha.length >= 8) pontos++;
+      if (/[A-Z]/.test(senha) && /[0-9]/.test(senha)) pontos++;
+      if (/[^A-Za-z0-9]/.test(senha)) pontos++;
+
+      segs.forEach(s => { s.className = 'forca-seg'; });
+      if (pontos === 1) { segs[0].classList.add('fraca'); texto.textContent = 'Fraca'; texto.style.color = '#b33a3a'; }
+      else if (pontos === 2) { segs[0].classList.add('media'); segs[1].classList.add('media'); texto.textContent = 'Média'; texto.style.color = '#e6a921'; }
+      else { segs.forEach(s => s.classList.add('forte')); texto.textContent = 'Forte'; texto.style.color = '#4caf50'; }
+    }
+
+    async function confirmarAlterarSenha() {
+      const atual = document.getElementById('senha-atual').value;
+      const nova = document.getElementById('senha-nova').value;
+      const confirmar = document.getElementById('senha-confirmar').value;
+      const hint = document.getElementById('hint-confirmar');
+
+      if (!atual) { mostrarToast('⚠️ Digite sua senha atual.'); return; }
+      if (nova.length < 6) { mostrarToast('⚠️ A nova senha deve ter ao menos 6 caracteres.'); return; }
+      if (nova !== confirmar) {
+        hint.textContent = '❌ As senhas não coincidem.';
+        hint.style.color = '#b33a3a';
+        return;
+      }
+      hint.textContent = '';
+
+      try {
+        const resp = await fetch('api/editar_perfil.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usuario: usuario.codusuario, nome: usuario.nome, email: usuario.email, senha_nova: nova }),
+        });
+        const dados = await resp.json();
+        if (dados.sucesso) {
+          fecharModal('modal-alterar-senha');
+          mostrarToast('🔒 Senha alterada com sucesso!');
+        } else {
+          mostrarToast(dados.erro || '❌ Erro ao alterar senha.');
+        }
+      } catch (e) {
+        mostrarToast('❌ Erro ao conectar com o servidor.');
+      }
+    }
+
+    function confirmarExportar() {
+      fecharModal('modal-exportar');
+      mostrarToast('📥 Download iniciado! Verifique seus arquivos.');
+      window.location.href = `api/exportar_csv.php?usuario=${usuario.codusuario}`;
+    }
+
+    let contaPausada = false;
+    function confirmarPausar() {
+      contaPausada = !contaPausada;
+      const badge = document.getElementById('pausar-badge');
+      fecharModal('modal-pausar');
+      if (contaPausada) {
+        mostrarToast('⏸️ Conta pausada. Você não aparece nas descobertas.');
+      } else {
+        mostrarToast('▶️ Conta reativada!');
+      }
+    }
+
+    function verificarConfirmacaoExclusao(valor) {
+      const btn = document.getElementById('btn-confirmar-exclusao');
+      const input = document.getElementById('input-confirmar-exclusao');
+      if (valor === 'EXCLUIR MINHA CONTA') {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+        input.style.borderColor = '#b33a3a';
+      } else {
+        btn.disabled = true;
+        btn.style.opacity = '0.4';
+        btn.style.cursor = 'not-allowed';
+        input.style.borderColor = '#e8b4b4';
+      }
+    }
+    function confirmarExcluirConta() {
+      fecharModal('modal-excluir');
+      mostrarToast('🗑️ Conta excluída permanentemente.');
+    }
+
+    function logoutDoSistema() {
+      sessionStorage.clear();
+      window.location.href = 'index.html';
+    }
+
+    let fotoSelecionadaEmBinario = null;
+
+    function renderizarVisualizacaoFoto(input) {
+      if (input.files && input.files[0]) {
+        const arquivo = input.files[0];
+        if (arquivo.size > 5 * 1024 * 1024) {
+          mostrarToast('⚠️ Erro: O arquivo excede o tamanho máximo de 5 MB.');
+          input.value = '';
+          return;
+        }
+        fotoSelecionadaEmBinario = arquivo;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const previewModal = document.getElementById('modal-avatar-preview');
+          previewModal.textContent = '';
+          previewModal.style.backgroundImage = `url('${e.target.result}')`;
+        };
+        reader.readAsDataURL(arquivo);
+      }
+    }
+
+    async function carregarDadosDoPerfil() {
+      // Preenche imediatamente com o que está na sessão
+      const partes = (usuario.nome || '').split(' ');
+      const primeiro = partes.shift() || '';
+      const resto = partes.join(' ');
+      document.getElementById('input-nome').value      = primeiro;
+      document.getElementById('input-sobrenome').value = resto;
+      document.getElementById('input-apelido').value   = usuario.nome || '';
+      document.getElementById('card-nome').textContent = usuario.nome || '';
+
+      try {
+        // Carrega config (toggles) e estatísticas
+        const [respCfg, respStats] = await Promise.all([
+          fetch(`api/configuracao.php?usuario=${usuario.codusuario}`),
+          fetch(`api/estante_stats.php?usuario=${usuario.codusuario}`),
+        ]);
+        const cfg   = await respCfg.json();
+        const stats = await respStats.json();
+
+        if (cfg) {
+          const checks = document.querySelectorAll('.linha-toggle input[type="checkbox"]');
+          if (checks[0] && cfg.estante_publica != null)     checks[0].checked = cfg.estante_publica == 1;
+          if (checks[1] && cfg.mostrar_localizacao != null) checks[1].checked = cfg.mostrar_localizacao == 1;
+          if (checks[2] && cfg.mostrar_avaliacao != null)   checks[2].checked = cfg.mostrar_avaliacao == 1;
+        }
+
+        const total = stats.total_livros ?? 0;
+        document.getElementById('card-sub').innerHTML =
+          `${usuario.email || ''} &nbsp;·&nbsp; ${total} livro${total !== 1 ? 's' : ''}`;
+      } catch (erro) {
+        document.getElementById('card-sub').textContent = usuario.email || '';
+      }
+    }
+
+    async function confirmarEditarPerfil() {
+      const nome      = document.getElementById('input-nome').value.trim();
+      const sobrenome = document.getElementById('input-sobrenome').value.trim();
+      const cidade    = document.getElementById('input-cidade').value.trim();
+      const estado    = document.getElementById('input-estado').value.trim();
+
+      if (!nome) {
+        mostrarToast('⚠️ Preencha o campo Nome.');
+        return;
+      }
+
+      const nomeCompleto = `${nome} ${sobrenome}`.trim();
+
+      try {
+        const resp = await fetch('api/editar_perfil.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usuario: usuario.codusuario, nome: nomeCompleto, email: usuario.email }),
+        });
+        const dados = await resp.json();
+        if (dados.sucesso) {
+          usuario.nome = dados.usuario.nome;
+          sessionStorage.setItem('usuario', JSON.stringify(usuario));
+          document.getElementById('card-nome').textContent = nomeCompleto;
+          if (fotoSelecionadaEmBinario) {
+            const cardAvatarTopo = document.getElementById('card-avatar');
+            cardAvatarTopo.textContent = '';
+            cardAvatarTopo.style.backgroundImage = document.getElementById('modal-avatar-preview').style.backgroundImage;
+          }
+          fecharModal('modal-editar-perfil');
+          mostrarToast('💾 Alterações salvas com sucesso!');
+        } else {
+          mostrarToast(dados.erro || '❌ Erro ao salvar.');
+        }
+      } catch (erro) {
+        mostrarToast('❌ Ocorreu um erro ao salvar os dados no servidor.');
+      }
+    }
+
+    window.onload = function() {
+      renderGeneros();
+      carregarDadosDoPerfil();
+    };
+  </script>
+  <script src="badge_mensagens.js"></script>
+</body>
+</html>

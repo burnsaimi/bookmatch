@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BookMatch – Recuperar Senha</title>
+  <style>
+    @font-face { font-family: 'Radiant Charisma'; src: url('fonts/RadiantCharismaDEMO-Medium.ttf') format('truetype'); }
+    @font-face { font-family: 'Quicksand'; src: url('fonts/Quicksand-Bold.ttf') format('truetype'); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { height: 100vh; display: flex; align-items: center; justify-content: center; background-color: #fffdf3; font-family: 'Quicksand', sans-serif; }
+
+    .card {
+      background: #fff;
+      border-radius: 24px;
+      padding: 48px 40px;
+      width: 420px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.10);
+    }
+    .logo { font-family: 'Radiant Charisma'; font-size: 32px; text-align: center; margin-bottom: 8px; }
+    .logo span:first-child { color: #bcb24d; }
+    .logo span:last-child  { color: #e6a921; }
+    h2 { font-family: 'Radiant Charisma'; font-size: 26px; color: #701d1c; margin-bottom: 6px; }
+    p.sub { font-size: 13px; color: #a6a6a6; margin-bottom: 28px; }
+
+    label { font-size: 11px; font-weight: bold; letter-spacing: 1px; color: #701d1c; display: block; margin-bottom: 4px; }
+    input {
+      width: 100%; height: 44px; background: #ede9d3;
+      border: none; border-radius: 30px; padding: 0 20px;
+      font-family: 'Quicksand'; font-size: 14px; outline: none;
+      margin-bottom: 16px;
+    }
+    .erro { color: #b33a3a; font-size: 13px; margin-bottom: 12px; display: none; text-align: center; }
+    .sucesso { color: #2e7d32; font-size: 13px; margin-bottom: 12px; display: none; text-align: center; }
+    .btn {
+      width: 100%; height: 48px; background: #701d1c; color: #fff;
+      border: none; border-radius: 30px; font-family: 'Quicksand';
+      font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.2s;
+      margin-bottom: 14px;
+    }
+    .btn:hover { background: #5a1615; }
+    .voltar { text-align: center; font-size: 13px; color: #bbbd63; text-decoration: underline; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo"><span>book</span><span>match</span></div>
+    <h2>Recuperar senha</h2>
+    <p class="sub">Informe seu e-mail e escolha uma nova senha.</p>
+
+    <label>E-MAIL</label>
+    <input id="email" type="email" placeholder="seu@email.com">
+
+    <label>NOVA SENHA</label>
+    <input id="senhaNova" type="password" placeholder="Nova senha">
+
+    <label>CONFIRMAR SENHA</label>
+    <input id="confirmarSenha" type="password" placeholder="Repita a nova senha">
+
+    <div class="erro"    id="erroMsg"></div>
+    <div class="sucesso" id="sucessoMsg"></div>
+
+    <button class="btn" onclick="recuperar()">Redefinir senha</button>
+    <div class="voltar" onclick="window.location.href='index.html'">← Voltar ao login</div>
+  </div>
+
+  <script>
+    async function recuperar() {
+      const email          = document.getElementById('email').value.trim();
+      const senhaNova      = document.getElementById('senhaNova').value;
+      const confirmarSenha = document.getElementById('confirmarSenha').value;
+      const erroEl    = document.getElementById('erroMsg');
+      const sucessoEl = document.getElementById('sucessoMsg');
+      erroEl.style.display = 'none';
+      sucessoEl.style.display = 'none';
+
+      if (!email || !senhaNova || !confirmarSenha) {
+        erroEl.textContent = 'Preencha todos os campos.';
+        erroEl.style.display = 'block'; return;
+      }
+      if (senhaNova !== confirmarSenha) {
+        erroEl.textContent = 'As senhas não coincidem.';
+        erroEl.style.display = 'block'; return;
+      }
+      if (senhaNova.length < 6) {
+        erroEl.textContent = 'A senha deve ter ao menos 6 caracteres.';
+        erroEl.style.display = 'block'; return;
+      }
+
+      try {
+        const resp = await fetch('api/recuperar_senha.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, senha_nova: senhaNova }),
+        });
+        const dados = await resp.json();
+        if (dados.sucesso) {
+          sucessoEl.textContent = 'Senha redefinida! Redirecionando...';
+          sucessoEl.style.display = 'block';
+          setTimeout(() => window.location.href = 'index.html', 2000);
+        } else {
+          erroEl.textContent = dados.erro || 'Erro ao redefinir senha.';
+          erroEl.style.display = 'block';
+        }
+      } catch (e) {
+        erroEl.textContent = 'Erro ao conectar com o servidor.';
+        erroEl.style.display = 'block';
+      }
+    }
+  </script>
+</body>
+</html>

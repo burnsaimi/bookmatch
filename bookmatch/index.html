@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookMatch</title>
+
+    <style>
+      @font-face {
+        font-family: 'Radiant Charisma';
+        src: url('fonts/RadiantCharismaDEMO-Medium.ttf') format('truetype');
+      }
+      @font-face {
+        font-family: 'Quicksand';
+        src: url('fonts/Quicksand-Bold.ttf') format('truetype');
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        height: 100vh;
+        display: flex;
+      }
+      .lado-esquerdo {
+        width: 40%;
+        background-color: #701d1c;
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+      }
+      .circulo-cima {
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 240px;
+        height: 240px;
+        background-color: rgba(173, 114, 114, 0.22);
+        border-radius: 60% 40% 55% 45%;
+      }
+      .circulo-baixo {
+        position: absolute;
+        bottom: -80px;
+        left: -80px;
+        width: 380px;
+        height: 340px;
+        background-color: rgba(173, 114, 114, 0.22);
+        border-radius: 45% 55% 40% 60%;
+      }
+      .livros {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 6px;
+      }
+      .livro {
+        height: 25px;
+        border-radius: 4px 4px 0 0;
+      }
+      .lado-direito {
+        width: 60%;
+        background-color: #fffdf3;
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+      }
+      .chip-genero {
+        font-family: 'Quicksand';
+        padding: 6px 16px;
+        border-radius: 20px;
+        border: 1px solid #ede9d3;
+        background-color: #ede9d3;
+        cursor: pointer;
+        font-size: 13px;
+        color: #701d1c;
+      }
+    </style>
+  </head>
+  <body>
+
+    <div class="lado-esquerdo">
+      <div class="circulo-cima"></div>
+      <div class="circulo-baixo"></div>
+
+      <div class="livros">
+        <div class="livro" style="width: 120px; background-color: #a7c7e4;"></div>
+        <div class="livro" style="width: 150px; background-color: #6b7f46;"></div>
+        <div class="livro" style="width: 135px; background-color: #e56e26;"></div>
+        <div class="livro" style="width: 165px; background-color: #bcb24d;"></div>
+        <div class="livro" style="width: 145px; background-color: #e2a9f1;"></div>
+        <div class="livro" style="width: 180px; background-color: #e4568b;"></div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <img src="images/LOGO - Book-Match.png" style="width: 150px;">
+        <div>
+          <h1 style="font-family: 'Radiant Charisma'; font-size: 36px; margin: 0;">
+            <span style="color: #bcb24d;">book</span>
+            <br>
+            <span style="color: #e6a921;">match</span>
+          </h1>
+          <p style="font-family: 'Quicksand'; color: #ffffff; font-weight: bold; margin: 0;">
+            <span style="color: #e6a921;">✦</span> sua estante, seu par.
+          </p>
+        </div>
+      </div>
+
+      <div style="margin-top: 130px;">
+        <h2 style="font-family: 'Radiant Charisma'; font-size: 52px; color: #ffffff; margin: 0;">
+          Sua estante.
+        </h2>
+        <h2 style="font-family: 'Radiant Charisma'; font-size: 52px; color: #e6a921; margin: 0;">
+          Sua História.
+        </h2>
+        <h2 style="font-family: 'Radiant Charisma'; font-size: 52px; color: #ffffff; margin: 0;">
+          Seu match.
+        </h2>
+        <p style="font-family: 'Quicksand'; color: #ffffff; font-size: 16px; margin-top: 16px; max-width: 370px;">
+          Conecte-se com leitores que buscam trocas de experiência de leitura.
+        </p>
+      </div>
+    </div>
+
+    <div class="lado-direito">
+
+      <div id="tela-cadastro">
+
+        <div style="display: flex; gap: 10px; margin-bottom: 32px;">
+          <button onclick="mostrarTela('login')" style="
+            font-family: 'Quicksand'; font-size: 15px;
+            padding: 10px 32px; border-radius: 30px;
+            border: none; background-color: #ede9d3;
+            color: #a6a6a6; cursor: pointer;
+          ">Entrar</button>
+          <button style="
+            font-family: 'Quicksand'; font-size: 15px;
+            padding: 10px 32px; border-radius: 30px;
+            border: none; background-color: #bbbd63;
+            color: #ffffff; font-weight: bold; cursor: pointer;
+          ">Criar Conta</button>
+        </div>
+
+        <h2 style="font-family: 'Radiant Charisma'; font-size: 36px; color: #701d1c; margin-bottom: 6px;">
+          Crie sua conta
+        </h2>
+        <p style="font-family: 'Quicksand'; font-size: 13px; color: #a6a6a6; margin-bottom: 28px;">
+          Junte-se a milhares de leitores apaixonados
+        </p>
+
+        <label style="font-family: 'Quicksand'; font-size: 11px; font-weight: bold; letter-spacing: 1px; color: #701d1c;">NOME COMPLETO</label>
+        <input id="nomeCadastro" type="text" style="width: 100%; height: 44px; background-color: #ede9d3; border: none; border-radius: 30px; padding: 0 20px; margin: 6px 0 18px; font-family: 'Quicksand'; font-size: 14px; outline: none;">
+
+        <label style="font-family: 'Quicksand'; font-size: 11px; font-weight: bold; letter-spacing: 1px; color: #701d1c;">E-MAIL</label>
+        <input id="emailCadastro" type="email" style="width: 100%; height: 44px; background-color: #ede9d3; border: none; border-radius: 30px; padding: 0 20px; margin: 6px 0 18px; font-family: 'Quicksand'; font-size: 14px; outline: none;">
+
+        <label style="font-family: 'Quicksand'; font-size: 11px; font-weight: bold; letter-spacing: 1px; color: #701d1c;">SENHA</label>
+        <input id="senhaCadastro" type="password" style="width: 100%; height: 44px; background-color: #ede9d3; border: none; border-radius: 30px; padding: 0 20px; margin: 6px 0 18px; font-family: 'Quicksand'; font-size: 14px; outline: none;">
+
+        <label style="font-family: 'Quicksand'; font-size: 11px; font-weight: bold; letter-spacing: 1px; color: #701d1c;">
+          GÊNEROS FAVORITOS <span style="font-weight: normal;">(SELECIONE ATÉ 4)</span>
+        </label>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 6px;">
+          <button onclick="toggleGenero(this)" class="chip-genero">Romance</button>
+          <button onclick="toggleGenero(this)" class="chip-genero">Ficção</button>
+          <button onclick="toggleGenero(this)" class="chip-genero">Ficção Científica</button>
+          <button onclick="toggleGenero(this)" class="chip-genero">Fantasia</button>
+          <button onclick="toggleGenero(this)" class="chip-genero">Terror</button>
+          <button onclick="toggleGenero(this)" class="chip-genero">Clássicos</button>
+          <button onclick="toggleGenero(this)" class="chip-genero">Autoajuda</button>
+          <button onclick="toggleGenero(this)" class="chip-genero">Não-Ficção</button>
+          <button onclick="toggleGenero(this)" class="chip-genero">Infantil</button>
+          <button onclick="toggleGenero(this)" class="chip-genero">HQ/Mangás</button>
+        </div>
+        <p style="font-family: 'Quicksand'; font-size: 12px; color: #a6a6a6; margin-bottom: 24px; font-style: italic;">
+          Isso nos ajuda a encontrar leitores compatíveis com você!
+        </p>
+
+        <div style="display: flex; gap: 14px; margin-bottom: 24px;">
+          <div style="width: 120px; display: flex; flex-direction: column;">
+            <label style="font-family: 'Quicksand'; font-size: 11px; font-weight: bold; letter-spacing: 1px; color: #701d1c;">ESTADO</label>
+            <select id="cadastro-estado" onchange="carregarCidades()" style="width: 100%; height: 44px; background-color: #ede9d3; border: none; border-radius: 30px; padding: 0 20px; margin-top: 6px; font-family: 'Quicksand'; font-size: 14px; outline: none; color: #701d1c; cursor: pointer;">
+              <option value="">--</option>
+            </select>
+          </div>
+          <div style="flex: 1; display: flex; flex-direction: column;">
+            <label style="font-family: 'Quicksand'; font-size: 11px; font-weight: bold; letter-spacing: 1px; color: #701d1c;">CIDADE</label>
+            <select id="cadastro-city" disabled style="width: 100%; height: 44px; background-color: #ede9d3; border: none; border-radius: 30px; padding: 0 20px; margin-top: 6px; font-family: 'Quicksand'; font-size: 14px; outline: none; color: #701d1c; cursor: pointer;">
+              <option value="">Selecione o estado primeiro</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="erroCadastro" style="color:#b33a3a;font-family:'Quicksand';font-size:13px;margin-bottom:10px;display:none;text-align:center;"></div>
+        <button onclick="fazerCadastro()" style="
+          width: 100%; height: 48px;
+          background-color: #bbbd63; color: #ffffff;
+          border: none; border-radius: 30px;
+          font-family: 'Quicksand'; font-size: 16px;
+          font-weight: bold; cursor: pointer;
+        ">Criar minha conta</button>
+
+      </div>
+
+      <div id="tela-login" style="display: none;">
+
+        <div style="display: flex; gap: 10px; margin-bottom: 32px;">
+          <button style="
+            font-family: 'Quicksand'; font-size: 15px;
+            padding: 10px 32px; border-radius: 30px;
+            border: none; background-color: #bbbd63;
+            color: #ffffff; font-weight: bold; cursor: pointer;
+          ">Entrar</button>
+          <button onclick="mostrarTela('cadastro')" style="
+            font-family: 'Quicksand'; font-size: 15px;
+            padding: 10px 32px; border-radius: 30px;
+            border: none; background-color: #ede9d3;
+            color: #a6a6a6; cursor: pointer;
+          ">Criar Conta</button>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 25px;">
+          <img src="images/LOGO - Entrar_Book_Match.png" style="width: 220px;">
+        </div>
+
+        <label style="font-family: 'Quicksand'; font-size: 11px; font-weight: bold; letter-spacing: 1px; color: #701d1c;">E-MAIL</label>
+        <input id="emailLogin" type="email" style="width: 100%; height: 44px; background-color: #ede9d3; border: none; border-radius: 30px; padding: 0 20px; margin: 6px 0 18px; font-family: 'Quicksand'; font-size: 14px; outline: none;">
+
+        <label style="font-family: 'Quicksand'; font-size: 11px; font-weight: bold; letter-spacing: 1px; color: #701d1c;">SENHA</label>
+        <input id="senhaLogin" type="password" onkeydown="if(event.key==='Enter') fazerLogin()" style="width: 100%; height: 44px; background-color: #ede9d3; border: none; border-radius: 30px; padding: 0 20px; margin: 6px 0 18px; font-family: 'Quicksand'; font-size: 14px; outline: none;">
+
+        <div id="erroLogin" style="color:#b33a3a;font-family:'Quicksand';font-size:13px;margin-bottom:10px;display:none;text-align:center;"></div>
+        <button onclick="fazerLogin()" style="
+          width: 100%; height: 48px;
+          background-color: #bbbd63; color: #ffffff;
+          border: none; border-radius: 30px;
+          font-family: 'Quicksand'; font-size: 16px;
+          font-weight: bold; cursor: pointer;
+          margin-bottom: 16px;
+        ">Entrar</button>
+
+        <p style="font-family: 'Quicksand'; font-size: 13px; color: #a6a6a6; text-align: center; margin-bottom: 10px;">
+          Encontre leitores compatíveis com você!
+        </p>
+        <p onclick="window.location.href='recuperar_senha.html'" style="font-family: 'Quicksand'; font-size: 13px; color: #bbbd63; text-align: center; text-decoration: underline; cursor: pointer;">
+          Esqueci a minha senha
+        </p>
+
+      </div>
+
+    </div>
+
+    <script>
+      function mostrarTela(tela) {
+        if (tela === 'login') {
+          document.getElementById('tela-cadastro').style.display = 'none';
+          document.getElementById('tela-login').style.display = 'block';
+        } else {
+          document.getElementById('tela-login').style.display = 'none';
+          document.getElementById('tela-cadastro').style.display = 'block';
+        }
+      }
+
+      function toggleGenero(btn) {
+        const selecionados = document.querySelectorAll('.selecionado');
+        if (btn.classList.contains('selecionado')) {
+          btn.classList.remove('selecionado');
+          btn.style.backgroundColor = '#ede9d3';
+          btn.style.borderColor = '#ede9d3';
+          btn.style.color = '#701d1c';
+        } else if (selecionados.length < 4) {
+          btn.classList.add('selecionado');
+          btn.style.backgroundColor = '#e6a921';
+          btn.style.borderColor = '#e6a921';
+          btn.style.color = '#ffffff';
+        }
+      }
+
+      async function carregarEstados() {
+        const selectEstado = document.getElementById('cadastro-estado');
+        try {
+          const resposta = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome');
+          const estados = await resposta.json();
+          
+          estados.forEach(uf => {
+            const option = document.createElement('option');
+            option.value = uf.sigla;
+            option.textContent = uf.sigla;
+            selectEstado.appendChild(option);
+          });
+        } catch (erro) {
+          console.error("Erro ao carregar estados da API do IBGE:", erro);
+        }
+      }
+
+      async function carregarCidades() {
+        const siglaUf = document.getElementById('cadastro-estado').value;
+        const selectCidade = document.getElementById('cadastro-city');
+        
+        selectCidade.innerHTML = '<option value="">Carregando...</option>';
+        
+        if (!siglaUf) {
+          selectCidade.innerHTML = '<option value="">Selecione o estado primeiro</option>';
+          selectCidade.disabled = true;
+          return;
+        }
+        
+        try {
+          const resposta = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${siglaUf}/municipios`);
+          const cidades = await resposta.json();
+          
+          selectCidade.innerHTML = '<option value="">Selecione sua cidade</option>';
+          selectCidade.disabled = false;
+          
+          cidades.forEach(cidade => {
+            const option = document.createElement('option');
+            option.value = cidade.nome;
+            option.textContent = cidade.nome;
+            selectCidade.appendChild(option);
+          });
+        } catch (erro) {
+          console.error("Erro ao carregar cidades da API do IBGE:", erro);
+          selectCidade.innerHTML = '<option value="">Erro ao carregar cidades</option>';
+        }
+      }
+
+      carregarEstados();
+
+      async function fazerLogin() {
+        const email = document.getElementById('emailLogin').value.trim();
+        const senha = document.getElementById('senhaLogin').value;
+        const erroEl = document.getElementById('erroLogin');
+        erroEl.style.display = 'none';
+
+        if (!email || !senha) {
+          erroEl.textContent = 'Preencha e-mail e senha.';
+          erroEl.style.display = 'block';
+          return;
+        }
+
+        try {
+          const resp = await fetch('api/login.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, senha }),
+          });
+          const dados = await resp.json();
+          if (dados.sucesso) {
+            sessionStorage.setItem('usuario', JSON.stringify(dados.usuario));
+            window.location.href = 'estante.html';
+          } else {
+            erroEl.textContent = dados.erro || 'Usuário ou senha incorretos.';
+            erroEl.style.display = 'block';
+          }
+        } catch (e) {
+          erroEl.textContent = 'Erro ao conectar com o servidor.';
+          erroEl.style.display = 'block';
+        }
+      }
+
+      async function fazerCadastro() {
+        const nome   = document.getElementById('nomeCadastro').value.trim();
+        const email  = document.getElementById('emailCadastro').value.trim();
+        const senha  = document.getElementById('senhaCadastro').value;
+        const uf     = document.getElementById('cadastro-estado').value;
+        const cidade = document.getElementById('cadastro-city').value;
+        const erroEl = document.getElementById('erroCadastro');
+        erroEl.style.display = 'none';
+
+        if (!nome || !email || !senha) {
+          erroEl.textContent = 'Preencha nome, e-mail e senha.';
+          erroEl.style.display = 'block';
+          return;
+        }
+
+        const generos = [...document.querySelectorAll('.selecionado')].map(b => b.textContent.trim());
+
+        try {
+          const resp = await fetch('api/cadastro.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nome, email, senha, generos, cidade, uf }),
+          });
+          const dados = await resp.json();
+          if (dados.sucesso) {
+            sessionStorage.setItem('usuario', JSON.stringify(dados.usuario));
+            window.location.href = 'estante.html';
+          } else {
+            erroEl.textContent = dados.erro || 'Erro ao criar conta.';
+            erroEl.style.display = 'block';
+          }
+        } catch (e) {
+          erroEl.textContent = 'Erro ao conectar com o servidor.';
+          erroEl.style.display = 'block';
+        }
+      }
+    </script>
+
+  </body>
+</html>

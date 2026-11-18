@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BookMatch – Curtidas</title>
+  <style>
+    @font-face { font-family: 'Radiant Charisma'; src: url('fonts/RadiantCharismaDEMO-Medium.ttf') format('truetype'); }
+    @font-face { font-family: 'Quicksand'; src: url('fonts/Quicksand-Bold.ttf') format('truetype'); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { height: 100vh; display: flex; font-family: 'Quicksand', sans-serif; background-color: #fffdf3; overflow: hidden; }
+
+    /* ── SIDEBAR ── */
+    .barra-lateral { width: 280px; min-width: 280px; background-color: #701d1c; display: flex; flex-direction: column; padding: 50px 0 0 0; position: relative; overflow: hidden; z-index: 1; }
+    .barra-lateral::before { content: ''; position: absolute; bottom: -80px; left: -80px; width: 300px; height: 300px; background: rgba(173,114,114,0.22); border-radius: 45% 55% 40% 60%; pointer-events: none; }
+    .barra-lateral::after { content: ''; position: absolute; top: -40px; right: -40px; width: 180px; height: 180px; background: rgba(173,114,114,0.22); border-radius: 60% 40% 55% 45%; pointer-events: none; }
+    .container-nome-sistema { padding: 0 30px 50px; z-index: 2; }
+    .container-nome-sistema h1 { font-family: 'Radiant Charisma'; font-size: 36px; line-height: 0.9; }
+    .container-nome-sistema h1 span:first-child { color: #bcb24d; }
+    .container-nome-sistema h1 span:last-child  { color: #e6a921; }
+    .rotulo-nav { font-size: 10px; letter-spacing: 1.5px; color: rgba(255,255,255,0.5); padding: 20px 30px 10px; z-index: 2; font-weight: bold; }
+    .item-nav { display: flex; align-items: center; gap: 12px; padding: 12px 30px; color: #fff; font-size: 14px; cursor: pointer; transition: 0.3s; z-index: 2; text-decoration: none; }
+    .item-nav:hover { background: rgba(255,255,255,0.1); }
+    .item-nav.ativo { background: rgba(255,255,255,0.15); font-weight: bold; border-left: 4px solid #e6a921; }
+    .notificacao { margin-left: auto; background: #e4568b; color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 10px; }
+
+    /* Rodapé do menu lateral - Botão Sair */
+    .container-conta-nav {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      z-index: 2;
+      padding-bottom: 20px;
+    }
+    .btn-sair-lateral {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 30px;
+      color: #ffffff;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.3s;
+      text-decoration: none;
+      background: transparent;
+      border: none;
+      width: 100%;
+      text-align: left;
+      font-family: 'Quicksand', sans-serif;
+      font-weight: bold;
+    }
+    .btn-sair-lateral:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    /* ── CONTEÚDO ── */
+    .conteudo { flex: 1; padding: 40px; overflow-y: auto; background-color: #fffdf3; }
+
+    .topo { margin-bottom: 6px; }
+    .topo h2 { font-family: 'Radiant Charisma'; font-size: 42px; color: #701d1c; }
+    .topo-sub { font-size: 13px; color: #a6a6a6; margin-bottom: 24px; }
+
+    /* ── ABAS ── */
+    .abas { display: flex; gap: 8px; margin-bottom: 28px; }
+    .aba {
+      padding: 8px 24px; border-radius: 20px; border: none;
+      font-family: 'Quicksand'; font-size: 13px; font-weight: bold;
+      cursor: pointer; transition: 0.2s;
+    }
+    .aba.ativa { background: #701d1c; color: #fff; }
+    .aba.inativa { background: #ede9d3; color: #a6a6a6; }
+    .aba.inativa:hover { background: #e0dbc8; }
+
+    /* ── CARDS DE ESTATÍSTICA ── */
+    .linha-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+    .card-stat { background: #ede9d3; border-radius: 18px; padding: 18px 16px; display: flex; align-items: center; gap: 14px; }
+    .stat-icone { font-size: 28px; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .stat-icone.rosa   { background: #fce4ec; }
+    .stat-icone.laranja{ background: #fff3e0; }
+    .stat-icone.azul   { background: #e3f2fd; }
+    .stat-icone.cinza  { background: #f5f5f5; }
+    .stat-valor { font-family: 'Radiant Charisma'; font-size: 36px; color: #e6a921; line-height: 1; }
+    .stat-label { font-size: 11px; color: #a6a6a6; margin-top: 2px; }
+
+    /* ── SEÇÃO ── */
+    .secao-titulo {
+      font-size: 15px; font-weight: bold; color: #701d1c;
+      margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
+    }
+    .badge-novas { background: #e6a921; color: #fff; font-size: 11px; font-weight: bold; padding: 3px 12px; border-radius: 10px; }
+
+    /* ── GRADE DE CURTIDAS RECEBIDAS ── */
+    .grade-recebidas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+
+    .card-recebida {
+      background: #ede9d3; border-radius: 16px; padding: 16px;
+      position: relative; transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card-recebida:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+
+    .badge-nova {
+      position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
+      background: #e4568b; color: #fff; font-size: 10px; font-weight: bold;
+      padding: 2px 10px; border-radius: 10px;
+    }
+
+    .recebida-topo { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; color: #fff; flex-shrink: 0; }
+    .recebida-nome { font-size: 13px; font-weight: bold; color: #2c2c2c; }
+    .recebida-local { font-size: 11px; color: #a6a6a6; }
+
+    .generos-row { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 12px; }
+    .tag-genero { padding: 3px 10px; border-radius: 10px; background: #701d1c; color: #fff; font-size: 10px; font-weight: bold; }
+
+    .acoes-card { display: flex; align-items: center; gap: 8px; }
+    .btn-match {
+      flex: 1; height: 34px; border-radius: 20px; border: none;
+      background: #701d1c; color: #fff; font-family: 'Quicksand';
+      font-size: 12px; font-weight: bold; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      transition: background 0.2s;
+    }
+    .btn-match:hover { background: #5a1615; }
+    .btn-ignorar {
+      width: 34px; height: 34px; border-radius: 50%; border: none;
+      background: #c0b090; color: #fff; font-size: 16px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s;
+    }
+    .btn-ignorar:hover { background: #a09070; }
+
+    /* ── LISTA DE CURTIDAS DADAS ── */
+    .lista-dadas { display: flex; flex-direction: column; gap: 12px; }
+
+    .card-dada {
+      background: #ede9d3; border-radius: 14px; padding: 16px 20px;
+      display: flex; align-items: center; gap: 16px;
+      transition: transform 0.2s;
+    }
+    .card-dada:hover { transform: translateX(4px); }
+
+    .dada-info { flex: 1; }
+    .dada-nome { font-size: 14px; font-weight: bold; color: #2c2c2c; }
+    .dada-local { font-size: 12px; color: #a6a6a6; margin-top: 1px; }
+
+    .tag-comum { background: #e6a921; color: #fff; font-size: 11px; font-weight: bold; padding: 3px 12px; border-radius: 10px; flex-shrink: 0; }
+
+    .status-match {
+      display: flex; align-items: center; gap: 8px;
+      background: #6b7f46; color: #fff;
+      border-radius: 20px; padding: 8px 18px;
+      font-size: 13px; font-weight: bold; flex-shrink: 0;
+    }
+    .status-aguardando {
+      display: flex; align-items: center; gap: 8px;
+      background: #e6a921; color: #fff;
+      border-radius: 20px; padding: 8px 18px;
+      font-size: 13px; font-weight: bold; flex-shrink: 0;
+    }
+
+    /* ── SEÇÕES POR ABA ── */
+    .secao { display: none; }
+    .secao.ativa { display: block; }
+
+    /* TOAST */
+    .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background-color: #701d1c; color: white; padding: 12px 28px; border-radius: 30px; font-size: 14px; font-family: 'Quicksand'; font-weight: 700; opacity: 0; transition: opacity 0.3s; z-index: 999; pointer-events: none; }
+    .toast.visivel { opacity: 1; }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="barra-lateral">
+    <div class="container-nome-sistema">
+      <h1><span>book</span><br><span>match</span></h1>
+    </div>
+
+    <span class="rotulo-nav">PRINCIPAL</span>
+    <a class="item-nav" href="estante.html">📚 Minha Estante</a>
+    <a class="item-nav" href="adicionarlivro.html">🔍 Adicionar Livro</a>
+    <a class="item-nav" href="descobrir.html">🔎 Descobrir Livros</a>
+    <a class="item-nav ativo" href="curtidas.html"> 💕 Curtidas</a>
+    <a class="item-nav" href="mensagens.html">💬 Mensagens <span class="notificacao" id="badgeMsgs" style="display:none;">0</span></a>
+    <a class="item-nav" href="configuracao.html">⚙️ Configurações</a>
+
+    <span class="rotulo-nav">SUAS LISTAS</span>
+    <a class="item-nav" href="matches.html">❤️ Matches</a>
+    <a class="item-nav" href="troca.html">✅ Trocas</a>
+    <a class="item-nav" href="queroler.html">🛒 Quero ler</a>
+
+    <div class="container-conta-nav">
+      <span class="rotulo-nav">CONTA</span>
+      <button class="btn-sair-lateral" onclick="logoutDoSistema()">🚪 Sair</button>
+    </div>
+  </aside>
+
+  <!-- CONTEÚDO -->
+  <div class="conteudo">
+    <div class="topo">
+      <h2>Curtidas</h2>
+      <p class="topo-sub">Leitores que curtiram sua estante e estantes que você curtiu</p>
+    </div>
+
+    <!-- ABAS -->
+    <div class="abas">
+      <button class="aba ativa" onclick="trocarAba('geral', this)">Visão Geral</button>
+      <button class="aba inativa" onclick="trocarAba('recebidas', this)">Recebidas</button>
+      <button class="aba inativa" onclick="trocarAba('dadas', this)">Dadas</button>
+    </div>
+
+    <!-- ABA: VISÃO GERAL -->
+    <div class="secao ativa" id="secao-geral">
+      <div class="linha-stats">
+        <div class="card-stat">
+          <div class="stat-icone rosa">❤️</div>
+          <div>
+            <div class="stat-valor">11</div>
+            <div class="stat-label">Curtidas recebidas</div>
+          </div>
+        </div>
+        <div class="card-stat">
+          <div class="stat-icone laranja">🧡</div>
+          <div>
+            <div class="stat-valor">14</div>
+            <div class="stat-label">Curtidas dadas</div>
+          </div>
+        </div>
+        <div class="card-stat">
+          <div class="stat-icone azul">💙</div>
+          <div>
+            <div class="stat-valor">9</div>
+            <div class="stat-label">Matches gerados</div>
+          </div>
+        </div>
+        <div class="card-stat">
+          <div class="stat-icone cinza">⏳</div>
+          <div>
+            <div class="stat-valor">2</div>
+            <div class="stat-label">Aguardando resposta</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recebidas recentes -->
+      <div class="secao-titulo">
+        Curtidas recebidas
+        <span class="badge-novas" id="badgeNovasGeral" style="display:none;">0 novas</span>
+      </div>
+      <div class="grade-recebidas" id="gradeGeralRecebidas"></div>
+
+      <!-- Dadas recentes -->
+      <div class="secao-titulo">Curtidas enviadas</div>
+      <div class="lista-dadas" id="listaGeralDadas"></div>
+    </div>
+
+    <!-- ABA: RECEBIDAS -->
+    <div class="secao" id="secao-recebidas">
+      <div class="secao-titulo">
+        Curtidas recebidas
+        <span class="badge-novas" id="badgeNovasRecebidas" style="display:none;">0 novas</span>
+      </div>
+      <div class="grade-recebidas" id="gradeTodasRecebidas"></div>
+    </div>
+
+    <!-- ABA: DADAS -->
+    <div class="secao" id="secao-dadas">
+      <div class="secao-titulo">Curtidas enviadas</div>
+      <div class="lista-dadas" id="listaTodasDadas"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const usuario = JSON.parse(sessionStorage.getItem('usuario'));
+    if (!usuario?.codusuario) window.location.href = 'index.html';
+
+    function logoutDoSistema() {
+      sessionStorage.clear();
+      window.location.href = 'index.html';
+    }
+
+    const coresPadrao = ['#e4568b','#6b7f46','#3a3a5e','#c0392b','#01579b','#4a148c','#bf360c','#33691e'];
+    const corDe = nome => coresPadrao[Math.abs([...(nome||'?')].reduce((h,c)=>(h*31+c.charCodeAt(0))|0,0)) % coresPadrao.length];
+    const iniciaisDe = nome => (nome || '?').split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase();
+
+    let recebidas = [], dadas = [];
+
+    function htmlRecebida(p, comBotoes = true) {
+      const local = `${p.total_livros || 0} Livros`;
+      return `
+        <div class="card-recebida">
+          ${!p.ja_match ? '<div class="badge-nova">nova</div>' : ''}
+          <div class="recebida-topo">
+            <div class="avatar" style="background:${corDe(p.nome)};">${iniciaisDe(p.nome)}</div>
+            <div>
+              <div class="recebida-nome">${p.nome}</div>
+              <div class="recebida-local">${local}</div>
+            </div>
+          </div>
+          ${comBotoes && !p.ja_match ? `
+          <div class="acoes-card">
+            <button class="btn-match" onclick="darMatch(${p.codusuario}, '${(p.nome||'').replace(/'/g,'')}')">❤️ Dar Match</button>
+            <button class="btn-ignorar" onclick="ignorar(this)" title="Ignorar">✕</button>
+          </div>` : '<div class="status-match" style="justify-content:center;">✅ Match</div>'}
+        </div>`;
+    }
+
+    function htmlDada(p) {
+      const local = `${p.total_livros || 0} Livros`;
+      const statusHtml = p.ja_match
+        ? `<div class="status-match">✅ Match</div>`
+        : `<div class="status-aguardando">⏳ Aguardando</div>`;
+      return `
+        <div class="card-dada">
+          <div class="avatar" style="background:${corDe(p.nome)};">${iniciaisDe(p.nome)}</div>
+          <div class="dada-info">
+            <div class="dada-nome">${p.nome}</div>
+            <div class="dada-local">${local}</div>
+          </div>
+          ${statusHtml}
+        </div>`;
+    }
+
+    function render() {
+      const semRec = '<p style="color:#a6a6a6;font-size:13px;">Nenhuma curtida recebida ainda.</p>';
+      const semDad = '<p style="color:#a6a6a6;font-size:13px;">Você ainda não curtiu ninguém.</p>';
+      document.getElementById('gradeGeralRecebidas').innerHTML = recebidas.length ? recebidas.slice(0,4).map(p => htmlRecebida(p)).join('') : semRec;
+      document.getElementById('listaGeralDadas').innerHTML     = dadas.length ? dadas.map(htmlDada).join('') : semDad;
+      document.getElementById('gradeTodasRecebidas').innerHTML = recebidas.length ? recebidas.map(p => htmlRecebida(p)).join('') : semRec;
+      document.getElementById('listaTodasDadas').innerHTML     = dadas.length ? dadas.map(htmlDada).join('') : semDad;
+
+      // "X novas" = curtidas recebidas que ainda não viraram match
+      const novas = recebidas.filter(p => !p.ja_match || p.ja_match == 0).length;
+      [document.getElementById('badgeNovasGeral'), document.getElementById('badgeNovasRecebidas')].forEach(b => {
+        if (!b) return;
+        if (novas > 0) { b.textContent = `${novas} nova${novas !== 1 ? 's' : ''}`; b.style.display = ''; }
+        else { b.style.display = 'none'; }
+      });
+    }
+
+    async function carregarCurtidas() {
+      try {
+        const resp = await fetch(`api/curtidas.php?usuario=${usuario.codusuario}`);
+        const dados = await resp.json();
+        recebidas = dados.recebidas || [];
+        dadas     = dados.dadas     || [];
+        const s = dados.stats || {};
+        const vals = document.querySelectorAll('.stat-valor');
+        if (vals[0]) vals[0].textContent = s.recebidas  ?? recebidas.length;
+        if (vals[1]) vals[1].textContent = s.dadas      ?? dadas.length;
+        if (vals[2]) vals[2].textContent = s.matches    ?? 0;
+        if (vals[3]) vals[3].textContent = s.aguardando ?? 0;
+        render();
+      } catch (e) {
+        document.getElementById('gradeGeralRecebidas').innerHTML = '<p style="color:#a6a6a6;">Erro ao carregar.</p>';
+      }
+    }
+
+    function trocarAba(id, btn) {
+      document.querySelectorAll('.secao').forEach(s => s.classList.remove('ativa'));
+      document.querySelectorAll('.aba').forEach(b => { b.classList.remove('ativa'); b.classList.add('inativa'); });
+      document.getElementById('secao-' + id).classList.add('ativa');
+      btn.classList.add('ativa');
+      btn.classList.remove('inativa');
+    }
+
+    async function darMatch(outroId, nome) {
+      try {
+        const resp = await fetch('api/confirmar_match.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usuario: usuario.codusuario, outro_usuario: outroId }),
+        });
+        const dados = await resp.json();
+        if (dados.sucesso) {
+          mostrarToast(`❤️ Match com ${nome} confirmado!`);
+          carregarCurtidas();
+        } else {
+          mostrarToast(dados.erro || 'Não foi possível dar match.');
+        }
+      } catch (e) {
+        mostrarToast('Erro ao conectar com o servidor.');
+      }
+    }
+
+    function ignorar(btn) {
+      const card = btn.closest('.card-recebida');
+      card.style.opacity = '0';
+      card.style.transition = 'opacity 0.3s';
+      setTimeout(() => card.remove(), 300);
+    }
+
+    function mostrarToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('visivel');
+      setTimeout(() => t.classList.remove('visivel'), 3000);
+    }
+
+    carregarCurtidas();
+  </script>
+  <script src="badge_mensagens.js"></script>
+</body>
+</html>

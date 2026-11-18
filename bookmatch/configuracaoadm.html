@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BookMatch – Painel Administrador</title>
+  <style>
+    @font-face { font-family: 'Radiant Charisma'; src: url('fonts/RadiantCharismaDEMO-Medium.ttf') format('truetype'); }
+    @font-face { font-family: 'Quicksand'; src: url('fonts/Quicksand-Bold.ttf') format('truetype'); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { height: 100vh; display: flex; font-family: 'Quicksand', sans-serif; background-color: #fffdf3; overflow: hidden; }
+
+    .barra-lateral { width: 280px; min-width: 280px; background-color: #701d1c; display: flex; flex-direction: column; padding: 50px 0 0 0; position: relative; overflow: hidden; z-index: 1; }
+    .barra-lateral::before { content: ''; position: absolute; bottom: -80px; left: -80px; width: 300px; height: 300px; background: rgba(173,114,114,0.22); border-radius: 45% 55% 40% 60%; pointer-events: none; }
+    .barra-lateral::after { content: ''; position: absolute; top: -40px; right: -40px; width: 180px; height: 180px; background: rgba(173,114,114,0.22); border-radius: 60% 40% 55% 45%; pointer-events: none; }
+    .container-nome-sistema { padding: 0 30px 50px; z-index: 2; }
+    .container-nome-sistema h1 { font-family: 'Radiant Charisma'; font-size: 36px; line-height: 0.9; }
+    .container-nome-sistema h1 span:first-child { color: #bcb24d; }
+    .container-nome-sistema h1 span:last-child  { color: #e6a921; }
+    .rotulo-nav { font-size: 10px; letter-spacing: 1.5px; color: rgba(255,255,255,0.5); padding: 20px 30px 10px; z-index: 2; font-weight: bold; }
+    .item-nav { display: flex; align-items: center; gap: 12px; padding: 12px 30px; color: #fff; font-size: 14px; cursor: pointer; transition: 0.3s; z-index: 2; text-decoration: none; }
+    .item-nav:hover { background: rgba(255,255,255,0.1); }
+    .item-nav.ativo { background: rgba(255,255,255,0.15); font-weight: bold; border-left: 4px solid #e6a921; }
+    .notificacao { margin-left: auto; background: #e4568b; color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 10px; }
+    .badge-admin { margin-left: auto; background: #e6a921; color: #701d1c; font-size: 9px; padding: 2px 8px; border-radius: 10px; font-weight: bold; letter-spacing: 0.5px; }
+
+    /* Rodapé do menu lateral - Botão Sair */
+    .container-conta-nav {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      z-index: 2;
+      padding-bottom: 20px;
+    }
+    .btn-sair-lateral {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 30px;
+      color: #ffffff;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.3s;
+      text-decoration: none;
+      background: transparent;
+      border: none;
+      width: 100%;
+      text-align: left;
+      font-family: 'Quicksand', sans-serif;
+      font-weight: bold;
+    }
+    .btn-sair-lateral:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .conteudo { flex: 1; padding: 40px; overflow-y: auto; background-color: #fffdf3; }
+    .topo { margin-bottom: 6px; display: flex; align-items: flex-start; justify-content: space-between; }
+    .topo-esq h2 { font-family: 'Radiant Charisma'; font-size: 42px; color: #701d1c; }
+    .topo-sub { font-size: 13px; color: #a6a6a6; margin-bottom: 24px; }
+    .badge-admin-topo { background: #fdf2d0; border: 1.5px solid #e6a921; color: #7a5a00; font-size: 11px; font-weight: bold; padding: 5px 14px; border-radius: 20px; display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+
+    .abas { display: flex; gap: 8px; margin-bottom: 28px; flex-wrap: wrap; }
+    .aba { padding: 8px 24px; border-radius: 20px; border: none; font-family: 'Quicksand'; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    .aba.ativa { background: #701d1c; color: #fff; }
+    .aba.inativa { background: #ede9d3; color: #a6a6a6; }
+    .aba.inativa:hover { background: #e0dbc8; }
+
+    .secao { display: none; }
+    .secao.ativa { display: block; }
+
+    .card { background: #ede9d3; border-radius: 18px; padding: 24px 28px; margin-bottom: 20px; }
+    .card-header { display: flex; align-items: center; gap: 14px; padding-bottom: 20px; margin-bottom: 20px; border-bottom: 1.5px solid #d4cdb8; }
+    .card-icone { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+    .card-icone.amarelo { background: #e6a921; }
+    .card-icone.vermelho { background: #701d1c; color: #fff; }
+    .card-icone.verde { background: #3d9140; color: #fff; }
+    .card-icone.azul { background: #3a7ab3; color: #fff; }
+    .card-titulo { font-size: 16px; font-weight: bold; color: #2c2c2c; }
+    .card-sub { font-size: 12px; color: #a6a6a6; margin-top: 2px; }
+
+    .grid-contadores { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+    .contador-item { background: #fffdf3; border-radius: 14px; padding: 16px; text-align: center; border: 1.5px solid #d4cdb8; transition: 0.2s; cursor: default; }
+    .contador-item:hover { border-color: #e6a921; transform: translateY(-2px); }
+    .contador-num { font-family: 'Radiant Charisma'; font-size: 32px; color: #701d1c; line-height: 1; }
+    .contador-label { font-size: 11px; color: #a6a6a6; margin-top: 4px; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase; }
+    .contador-item.destaque { background: #fdf2d0; border-color: #e6a921; }
+    .contador-item.destaque .contador-num { color: #7a5a00; }
+
+    .barra-busca-row { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; }
+    .campo-busca-wrap { position: relative; flex: 1; }
+    .campo-busca-wrap .ico-busca { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 14px; color: #a6a6a6; pointer-events: none; }
+    .campo-busca { width: 100%; padding: 10px 16px 10px 40px; border: 1.5px solid #d4cdb8; border-radius: 20px; background: #fffdf3; font-family: 'Quicksand'; font-size: 13px; font-weight: bold; color: #2c2c2c; outline: none; transition: border-color 0.2s; }
+    .campo-busca:focus { border-color: #701d1c; }
+    .campo-busca::placeholder { color: #c0b090; font-weight: normal; }
+    .select-filtro { padding: 10px 32px 10px 14px; border: 1.5px solid #d4cdb8; border-radius: 20px; background: #fffdf3; font-family: 'Quicksand'; font-size: 13px; font-weight: bold; color: #2c2c2c; outline: none; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23a6a6a6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; transition: border-color 0.2s; }
+    .select-filtro:focus { border-color: #701d1c; }
+    .btn-novo-usuario { padding: 10px 20px; border-radius: 20px; border: none; background: #701d1c; font-family: 'Quicksand'; font-size: 13px; font-weight: bold; color: #fff; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+    .btn-novo-usuario:hover { background: #8a2322; }
+
+    .grid-usuarios { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .card-usuario { background: #fffdf3; border-radius: 16px; padding: 18px 20px; border: 1.5px solid #d4cdb8; transition: 0.2s; cursor: default; }
+    .card-usuario:hover { border-color: #e6a921; box-shadow: 0 4px 16px rgba(112,29,28,0.08); }
+    .usuario-topo { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .usuario-avatar { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; color: #fff; flex-shrink: 0; }
+    .usuario-nome { font-size: 14px; font-weight: bold; color: #2c2c2c; }
+    .usuario-email { font-size: 11px; color: #a6a6a6; margin-top: 1px; }
+    .usuario-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+    .badge-role { font-size: 10px; font-weight: bold; padding: 3px 10px; border-radius: 10px; }
+    .badge-role.admin { background: #fdf2d0; color: #7a5a00; border: 1px solid #e6a921; }
+    .badge-role.usuario { background: #f0f5fd; color: #1a4a8b; border: 1px solid #b4c9e8; }
+    .badge-status { font-size: 10px; font-weight: bold; padding: 3px 10px; border-radius: 10px; display: flex; align-items: center; gap: 4px; }
+    .badge-status.ativo { background: #d4f1d5; color: #2e7031; }
+    .badge-status.inativo { background: #f0f0f0; color: #888; }
+    .badge-status.pausado { background: #fde8d0; color: #995200; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+    .dot.verde { background: #3d9140; }
+    .dot.cinza { background: #aaa; }
+    .dot.laranja { background: #e67e00; }
+    .usuario-info-linha { font-size: 11px; color: #888; display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+    .usuario-acoes { display: flex; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid #ede9d3; }
+    .btn-acao-usuario { flex: 1; padding: 7px 0; border-radius: 12px; border: 1.5px solid #d4cdb8; background: transparent; font-family: 'Quicksand'; font-size: 11px; font-weight: bold; color: #888; cursor: pointer; transition: 0.2s; }
+    .btn-acao-usuario:hover { border-color: #701d1c; color: #701d1c; }
+    .btn-acao-usuario.perigo:hover { border-color: #b33a3a; color: #b33a3a; }
+
+    .paginacao { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 20px; }
+    .pag-btn { width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid #d4cdb8; background: transparent; font-family: 'Quicksand'; font-size: 13px; font-weight: bold; color: #888; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+    .pag-btn:hover, .pag-btn.ativo { background: #701d1c; border-color: #701d1c; color: #fff; }
+    .grid-sistema { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .linha-config-sistema { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid #d4cdb8; }
+    .linha-config-sistema:last-of-type { border-bottom: none; }
+    .config-nome { font-size: 14px; font-weight: bold; color: #2c2c2c; }
+    .config-desc { font-size: 11px; color: #a6a6a6; margin-top: 2px; }
+    .grid-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+    .stat-card { background: #fffdf3; border-radius: 14px; padding: 20px; border: 1.5px solid #d4cdb8; }
+    .stat-num { font-family: 'Radiant Charisma'; font-size: 36px; color: #701d1c; }
+    .stat-label { font-size: 12px; color: #a6a6a6; margin-top: 4px; font-weight: bold; }
+    .stat-variacao { font-size: 11px; margin-top: 6px; font-weight: bold; }
+    .stat-variacao.pos { color: #3d9140; }
+    .stat-variacao.neg { color: #b33a3a; }
+    .barra-progresso-wrap { margin-bottom: 14px; }
+    .barra-progresso-label { display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; color: #2c2c2c; margin-bottom: 6px; }
+    .barra-progresso { height: 8px; background: #d4cdb8; border-radius: 8px; overflow: hidden; }
+    .barra-progresso-fill { height: 100%; border-radius: 8px; background: #e6a921; transition: width 0.6s ease; }
+    .barra-progresso-fill.vermelho { background: #b33a3a; }
+    .barra-progresso-fill.verde { background: #3d9140; }
+
+    .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background-color: #701d1c; color: white; padding: 12px 28px; border-radius: 30px; font-size: 14px; font-family: 'Quicksand'; font-weight: 700; opacity: 0; transition: opacity 0.3s; z-index: 9999; pointer-events: none; }
+    .toast.visivel { opacity: 1; }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(40,10,10,0.45); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
+    .modal-overlay.aberto { opacity: 1; pointer-events: all; }
+    .modal { background: #fffdf3; border-radius: 24px; padding: 36px 40px; width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 60px rgba(112,29,28,0.18); transform: translateY(18px) scale(0.97); transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease; opacity: 0; position: relative; }
+    .modal-overlay.aberto .modal { transform: translateY(0) scale(1); opacity: 1; }
+    .modal-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28px; }
+    .modal-icone-titulo { display: flex; align-items: center; gap: 14px; }
+    .modal-icone { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+    .modal-icone.amarelo { background: #e6a921; }
+    .modal-icone.vermelho { background: #b33a3a; }
+    .modal-icone.verde { background: #4caf50; }
+    .modal-icone.azul { background: #3a7ab3; color: #fff; }
+    .modal-titulo { font-size: 20px; font-weight: bold; color: #2c2c2c; }
+    .modal-subtitulo { font-size: 12px; color: #a6a6a6; margin-top: 3px; }
+    .btn-fechar-modal { background: #ede9d3; border: none; border-radius: 50%; width: 32px; height: 32px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #888; transition: background 0.2s; flex-shrink: 0; }
+    .btn-fechar-modal:hover { background: #d4cdb8; color: #701d1c; }
+    .modal-divisor { height: 1px; background: #ede9d3; margin: 0 -40px 24px; }
+    .campo-grupo { margin-bottom: 20px; }
+    .campo-label { display: block; font-size: 12px; font-weight: bold; color: #701d1c; margin-bottom: 7px; letter-spacing: 0.5px; text-transform: uppercase; }
+    .campo-input { width: 100%; padding: 12px 16px; border: 1.5px solid #d4cdb8; border-radius: 12px; background: #fffdf3; font-family: 'Quicksand'; font-size: 14px; font-weight: bold; color: #2c2c2c; outline: none; transition: border-color 0.2s; }
+    .campo-input:focus { border-color: #701d1c; }
+    .campo-input::placeholder { color: #c0b090; font-weight: normal; }
+    .campo-hint { font-size: 11px; color: #a6a6a6; margin-top: 5px; }
+    .campo-linha { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .campo-select { width: 100%; padding: 12px 16px; border: 1.5px solid #d4cdb8; border-radius: 12px; background: #fffdf3; font-family: 'Quicksand'; font-size: 14px; font-weight: bold; color: #2c2c2c; outline: none; cursor: pointer; transition: border-color 0.2s; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23a6a6a6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+    .campo-select:focus { border-color: #701d1c; }
+    .secao-modal { margin-bottom: 22px; }
+    .secao-modal-titulo { font-size: 12px; font-weight: bold; color: #a6a6a6; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid #ede9d3; display: flex; align-items: center; gap: 8px; }
+    .modal-footer { display: flex; gap: 12px; justify-content: flex-end; margin-top: 28px; padding-top: 22px; border-top: 1.5px solid #ede9d3; }
+    .btn-modal-cancelar { padding: 10px 24px; border-radius: 20px; border: 1.5px solid #d4cdb8; background: transparent; font-family: 'Quicksand'; font-size: 13px; font-weight: bold; color: #888; cursor: pointer; transition: 0.2s; }
+    .btn-modal-cancelar:hover { border-color: #a6a6a6; color: #2c2c2c; }
+    .btn-modal-confirmar { padding: 10px 28px; border-radius: 20px; border: none; background: #701d1c; font-family: 'Quicksand'; font-size: 13px; font-weight: bold; color: #fff; cursor: pointer; transition: 0.2s; }
+    .btn-modal-confirmar:hover { background: #8a2322; }
+    .btn-modal-confirmar.perigo { background: #b33a3a; }
+    .btn-modal-confirmar.perigo:hover { background: #922e2e; }
+    .btn-modal-confirmar.verde { background: #3d9140; }
+    .btn-modal-confirmar.verde:hover { background: #2e7031; }
+    .aviso-amarelo { background: #fdf8e8; border: 1.5px solid #e8d4a0; border-radius: 12px; padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start; margin-bottom: 22px; }
+    .aviso-amarelo-icone { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .aviso-amarelo-texto { font-size: 13px; color: #7a5a00; line-height: 1.5; }
+    .aviso-amarelo-texto strong { display: block; margin-bottom: 4px; }
+    .aviso-perigo { background: #fdf0f0; border: 1.5px solid #e8b4b4; border-radius: 12px; padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start; margin-bottom: 22px; }
+    .aviso-perigo-icone { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .aviso-perigo-texto { font-size: 13px; color: #8b2020; line-height: 1.5; }
+    .aviso-perigo-texto strong { display: block; margin-bottom: 4px; }
+    .campo-senha-wrap { position: relative; }
+    .btn-olho { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px; color: #a6a6a6; transition: color 0.2s; }
+    .btn-olho:hover { color: #701d1c; }
+    .campo-senha-wrap .campo-input { padding-right: 44px; }
+    .btn-gerar-senha { font-size: 11px; color: #701d1c; background: none; border: none; font-family: 'Quicksand'; font-weight: bold; cursor: pointer; text-decoration: underline; margin-top: 5px; }
+
+    .av-vermelho   { background: #701d1c; }
+    .av-amarelo    { background: #c8851a; }
+    .av-azul       { background: #3a7ab3; }
+    .av-verde      { background: #3d9140; }
+    .av-roxo       { background: #6b3fa0; }
+    .av-rosa       { background: #b33a7a; }
+
+    .linha-conta { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid #d4cdb8; }
+    .linha-conta:last-of-type { border-bottom: none; }
+    .conta-item-nome { font-size: 14px; font-weight: bold; color: #2c2c2c; }
+    .conta-item-desc { font-size: 12px; color: #a6a6a6; margin-top: 2px; }
+    .btn-acao { padding: 8px 22px; border-radius: 20px; border: 1.5px solid #a6a6a6; background: transparent; font-family: 'Quicksand'; font-size: 13px; font-weight: bold; color: #2c2c2c; cursor: pointer; transition: 0.2s; }
+    .btn-acao:hover { border-color: #701d1c; color: #701d1c; }
+    .btn-acao.perigo { border-color: #b33a3a; color: #b33a3a; }
+    .btn-acao.perigo:hover { background: #b33a3a; color: #fff; }
+
+    .sem-resultados { text-align: center; padding: 60px 20px; color: #a6a6a6; }
+    .sem-resultados .ico { font-size: 40px; margin-bottom: 12px; }
+    .sem-resultados p { font-size: 14px; }
+
+    .grid-denuncias { display: flex; flex-direction: column; gap: 12px; }
+    .card-denuncia { background: #fffdf3; border-radius: 16px; padding: 18px 22px; border: 1.5px solid #d4cdb8; display: flex; align-items: center; gap: 16px; transition: 0.2s; }
+    .card-denuncia:hover { border-color: #e6a921; }
+    .denuncia-icone { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .denuncia-icone.livro  { background: #fdf2d0; }
+    .denuncia-icone.usuario   { background: #fdf0f0; }
+    .denuncia-corpo { flex: 1; }
+    .denuncia-titulo { font-size: 14px; font-weight: bold; color: #2c2c2c; }
+    .denuncia-desc   { font-size: 12px; color: #a6a6a6; margin-top: 2px; }
+    .denuncia-meta   { font-size: 11px; color: #c0b090; margin-top: 4px; }
+    .denuncia-acoes  { display: flex; gap: 8px; flex-shrink: 0; }
+    .badge-denuncia  { font-size: 10px; font-weight: bold; padding: 3px 10px; border-radius: 10px; }
+    .badge-denuncia.aberta    { background: #fdf8e8; color: #7a5a00; border: 1px solid #e8d4a0; }
+    .badge-denuncia.resolvida { background: #d4f1d5; color: #2e7031; border: 1px solid #a8d5a8; }
+    .btn-resolver { padding: 7px 16px; border-radius: 12px; border: 1.5px solid #3d9140; background: transparent; font-family: 'Quicksand'; font-size: 12px; font-weight: bold; color: #3d9140; cursor: pointer; transition: 0.2s; white-space: nowrap; }
+    .btn-resolver:hover { background: #3d9140; color: #fff; }
+    .btn-ignorar  { padding: 7px 16px; border-radius: 12px; border: 1.5px solid #d4cdb8; background: transparent; font-family: 'Quicksand'; font-size: 12px; font-weight: bold; color: #888; cursor: pointer; transition: 0.2s; white-space: nowrap; }
+    .btn-ignorar:hover { border-color: #a6a6a6; color: #2c2c2c; }
+    .badge-status.bloqueado { background: #fdf0f0; color: #8b2020; }
+    .dot.vermelho { background: #b33a3a; }
+  </style>
+</head>
+<body>
+
+  <aside class="barra-lateral">
+    <div class="container-nome-sistema">
+      <h1><span>book</span><br><span>match</span></h1>
+    </div>
+    <span class="rotulo-nav">PRINCIPAL</span>
+    <a class="item-nav" href="estante.html">📚 Minha Estante</a>
+    <a class="item-nav" href="adicionarlivro.html">🔍 Adicionar Livro</a>
+    <a class="item-nav" href="descobrir.html">🔎 Descobrir Livros</a>
+    <a class="item-nav" href="curtidas.html">💕 Curtidas</a>
+    <a class="item-nav" href="mensagens.html">💬 Mensagens <span class="notificacao" id="badgeMsgs" style="display:none;">0</span></a>
+    <a class="item-nav" href="configuracao.html">⚙️ Configurações</a>
+    <span class="rotulo-nav">ADMINISTRAÇÃO</span>
+    <a class="item-nav ativo" href="configuracaoadm.html">🛡️ Painel Admin <span class="badge-admin">ADMIN</span></a>
+    <span class="rotulo-nav">SUAS LISTAS</span>
+    <a class="item-nav" href="matches.html">❤️ Matches</a>
+    <a class="item-nav" href="troca.html">✅ Trocas</a>
+    <a class="item-nav" href="queroler.html">🛒 Quero ler</a>
+
+    <div class="container-conta-nav">
+      <button class="btn-sair-lateral" onclick="logoutDoSistema()">🚪 Sair</button>
+    </div>
+  </aside>
+
+  <div class="conteudo">
+    <div class="topo">
+      <div class="topo-esq">
+        <h2>Painel Admin</h2>
+        <p class="topo-sub">Gerenciamento de usuários e configurações do sistema</p>
+      </div>
+      <div class="badge-admin-topo">🛡️ Modo Administrador</div>
+    </div>
+
+    <div class="abas">
+      <button class="aba ativa"   onclick="trocarAba('usuarios', this)">👥 Usuários</button>
+      <button class="aba inativa" onclick="trocarAba('denuncias', this)">🚨 Denúncias <span id="badge-denuncias" style="background:#b33a3a;color:#fff;font-size:9px;padding:2px 7px;border-radius:10px;margin-left:2px;">4</span></button>
+      <button class="aba inativa" onclick="trocarAba('estatisticas', this)">📊 Estatísticas</button>
+    </div>
+
+    <div class="secao ativa" id="secao-usuarios">
+      <div class="grid-contadores" id="grid-contadores"></div>
+
+      <div class="barra-busca-row">
+        <div class="campo-busca-wrap">
+          <span class="ico-busca">🔍</span>
+          <input class="campo-busca" type="text" placeholder="Buscar por nome ou e-mail…" oninput="filtrarUsuarios()" id="input-busca">
+        </div>
+        <select class="select-filtro" onchange="filtrarUsuarios()" id="filtro-role">
+          <option value="">Todos os perfis</option>
+          <option value="admin">Administrador</option>
+          <option value="usuario">Usuário</option>
+        </select>
+        <select class="select-filtro" onchange="filtrarUsuarios()" id="filtro-status">
+          <option value="">Todos os status</option>
+          <option value="ativo">Ativo</option>
+          <option value="inativo">Inativo</option>
+          <option value="pausado">Pausado</option>
+          <option value="bloqueado">Bloqueado</option>
+        </select>
+        <button class="btn-novo-usuario" onclick="abrirModal('modal-novo-usuario')">➕ Novo usuário</button>
+      </div>
+
+      <div class="grid-usuarios" id="grid-usuarios"></div>
+      <div class="sem-resultados" id="sem-resultados" style="display:none">
+        <div class="ico">🔍</div>
+        <p>Nenhum usuário encontrado com os filtros aplicados.</p>
+      </div>
+      <div class="paginacao" id="paginacao"></div>
+    </div>
+
+    <div class="secao" id="secao-denuncias">
+      <div class="barra-busca-row">
+        <select class="select-filtro" onchange="filtrarDenuncias()" id="filtro-tipo-denuncia">
+          <option value="">Todos os tipos</option>
+          <option value="livro">Livro inadequado</option>
+          <option value="usuario">Usuário</option>
+        </select>
+        <select class="select-filtro" onchange="filtrarDenuncias()" id="filtro-status-denuncia">
+          <option value="">Todos os status</option>
+          <option value="aberta">Abertas</option>
+          <option value="resolvida">Resolvidas</option>
+        </select>
+      </div>
+
+      <div class="grid-denuncias" id="grid-denuncias"></div>
+      <div class="sem-resultados" id="sem-resultados-denuncia" style="display:none">
+        <div class="ico">🚨</div>
+        <p>Nenhuma denúncia encontrada.</p>
+      </div>
+    </div>
+
+    <div class="secao" id="secao-estatisticas">
+      <div class="grid-stats" id="grid-stats"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icone amarelo">📈</div>
+            <div><div class="card-titulo">Usuários por perfil</div><div class="card-sub">Distribuição atual</div></div>
+          </div>
+          <div id="grid-perfil"></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icone azul">🌍</div>
+            <div><div class="card-titulo">Top estados</div><div class="card-sub">Usuários por localização</div></div>
+          </div>
+          <div id="grid-estados"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="modal-overlay" id="modal-novo-usuario" onclick="fecharModalFora(event,this)">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-icone-titulo">
+          <div class="modal-icone verde">➕</div>
+          <div><div class="modal-titulo">Novo usuário</div><div class="modal-subtitulo">Preencha os dados para criar um novo usuário</div></div>
+        </div>
+        <button class="btn-fechar-modal" onclick="fecharModal('modal-novo-usuario')">✕</button>
+      </div>
+
+      <div class="secao-modal">
+        <div class="secao-modal-titulo">👤 Informações básicas</div>
+        <div class="campo-linha">
+          <div class="campo-grupo">
+            <label class="campo-label">Nome completo *</label>
+            <input class="campo-input" id="novo-nome" type="text" placeholder="Digite o nome completo">
+          </div>
+          <div class="campo-grupo">
+            <label class="campo-label">E-mail *</label>
+            <input class="campo-input" id="novo-email" type="email" placeholder="usuario@email.com">
+          </div>
+        </div>
+        <div class="campo-linha">
+          <div class="campo-grupo">
+            <label class="campo-label">Cidade</label>
+            <input class="campo-input" id="novo-cidade" type="text" placeholder="Ex: Porto Alegre">
+          </div>
+          <div class="campo-grupo">
+            <label class="campo-label">Estado</label>
+            <input class="campo-input" id="novo-estado" type="text" placeholder="Ex: RS">
+          </div>
+        </div>
+      </div>
+
+      <div class="secao-modal">
+        <div class="secao-modal-titulo">🔒 Segurança e acesso</div>
+        <div class="campo-linha">
+          <div class="campo-grupo">
+            <label class="campo-label">Senha *</label>
+            <div class="campo-senha-wrap">
+              <input class="campo-input" id="novo-senha" type="password" placeholder="Digite uma senha segura">
+              <button class="btn-olho" onclick="toggleSenha('novo-senha', this)">👁️</button>
+            </div>
+            <button class="btn-gerar-senha" onclick="gerarSenha()">🎲 Gerar senha automática</button>
+          </div>
+          <div class="campo-grupo">
+            <label class="campo-label">Perfil de acesso *</label>
+            <select class="campo-select" id="novo-role">
+              <option value="">Selecione um perfil</option>
+              <option value="usuario">Usuário</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-modal-cancelar" onclick="fecharModal('modal-novo-usuario')">Cancelar</button>
+        <button class="btn-modal-confirmar verde" onclick="criarUsuario()">➕ Criar usuário</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-editar-usuario" onclick="fecharModalFora(event,this)">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-icone-titulo">
+          <div class="modal-icone amarelo">✏️</div>
+          <div><div class="modal-titulo">Editar usuário</div><div class="modal-subtitulo" id="edit-subtitulo">Atualize as informações do usuário</div></div>
+        </div>
+        <button class="btn-fechar-modal" onclick="fecharModal('modal-editar-usuario')">✕</button>
+      </div>
+
+      <div class="secao-modal">
+        <div class="secao-modal-titulo">👤 Informações básicas</div>
+        <div class="campo-linha">
+          <div class="campo-grupo">
+            <label class="campo-label">Nome completo</label>
+            <input class="campo-input" id="edit-nome" type="text">
+          </div>
+          <div class="campo-grupo">
+            <label class="campo-label">E-mail</label>
+            <input class="campo-input" id="edit-email" type="email">
+          </div>
+        </div>
+        <div class="campo-linha">
+          <div class="campo-grupo">
+            <label class="campo-label">Cidade</label>
+            <input class="campo-input" id="edit-cidade" type="text">
+          </div>
+          <div class="campo-grupo">
+            <label class="campo-label">Estado</label>
+            <input class="campo-input" id="edit-estado" type="text">
+          </div>
+        </div>
+      </div>
+
+      <div class="secao-modal">
+        <div class="secao-modal-titulo">🔒 Segurança e acesso</div>
+        <div class="campo-linha">
+          <div class="campo-grupo">
+            <label class="campo-label">Nova senha</label>
+            <div class="campo-senha-wrap">
+              <input class="campo-input" id="edit-senha" type="password" placeholder="Deixe em branco para manter a atual">
+              <button class="btn-olho" onclick="toggleSenha('edit-senha', this)">👁️</button>
+            </div>
+          </div>
+          <div class="campo-grupo">
+            <label class="campo-label">Perfil de acesso</label>
+            <select class="campo-select" id="edit-role">
+              <option value="usuario">Usuário</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </div>
+        </div>
+        <div class="campo-grupo">
+          <label class="campo-label">Status da conta</label>
+          <select class="campo-select" id="edit-status">
+            <option value="ativo">Ativo</option>
+            <option value="pausado">Pausado</option>
+            <option value="inativo">Inativo</option>
+            <option value="bloqueado">Bloqueado</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-modal-cancelar" onclick="fecharModal('modal-editar-usuario')">Cancelar</button>
+        <button class="btn-modal-confirmar" onclick="salvarEdicao()">💾 Salvar alterações</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-excluir-usuario" onclick="fecharModalFora(event,this)">
+    <div class="modal" style="width:460px;">
+      <div class="modal-header">
+        <div class="modal-icone-titulo">
+          <div class="modal-icone vermelho">🗑️</div>
+          <div><div class="modal-titulo">Excluir usuário</div><div class="modal-subtitulo" id="excluir-subtitulo">Esta ação é permanente e irreversível</div></div>
+        </div>
+        <button class="btn-fechar-modal" onclick="fecharModal('modal-excluir-usuario')">✕</button>
+      </div>
+      <div class="aviso-perigo">
+        <span class="aviso-perigo-icone">🚨</span>
+        <div class="aviso-perigo-texto">
+          <strong>Tem certeza?</strong>
+          Todos os dados deste usuário (estante, matches, conversas e histórico de trocas) serão permanentemente apagados.
+        </div>
+      </div>
+      <div class="campo-grupo">
+        <p class="campo-confirmacao-texto">Para confirmar, digite <code>EXCLUIR</code> abaixo:</p>
+        <input class="campo-input" id="input-confirmar-excluir" type="text" placeholder="EXCLUIR" oninput="verificarConfirmacaoExcluirUser(this.value)" style="border-color:#e8b4b4;">
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal-cancelar" onclick="fecharModal('modal-excluir-usuario')">Cancelar</button>
+        <button class="btn-modal-confirmar perigo" id="btn-confirmar-excluir-user" onclick="confirmarExcluirUsuario()" disabled style="opacity:0.4;cursor:not-allowed;">
+          🗑️ Excluir permanentemente
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-bloquear-usuario" onclick="fecharModalFora(event,this)">
+    <div class="modal" style="width:460px;">
+      <div class="modal-header">
+        <div class="modal-icone-titulo">
+          <div class="modal-icone vermelho">🚫</div>
+          <div><div class="modal-titulo">Bloquear usuário</div><div class="modal-subtitulo" id="bloquear-subtitulo">Impede o acesso à plataforma</div></div>
+        </div>
+        <button class="btn-fechar-modal" onclick="fecharModal('modal-bloquear-usuario')">✕</button>
+      </div>
+      <div class="aviso-amarelo">
+        <span class="aviso-amarelo-icone">⚠️</span>
+        <div class="aviso-amarelo-texto">
+          <strong>O que acontece ao bloquear?</strong>
+          O usuário perderá acesso imediato à plataforma e receberá um aviso por e-mail. Você pode desbloquear a qualquer momento editando o perfil.
+        </div>
+      </div>
+      <div class="campo-grupo">
+        <label class="campo-label">Motivo do bloqueio *</label>
+        <select class="campo-select" id="bloquear-motivo">
+          <option value="">Selecione o motivo</option>
+          <option>Comportamento inadequado</option>
+          <option>Denúncias recorrentes</option>
+          <option>Conteúdo impróprio</option>
+          <option>Fraude ou golpe</option>
+          <option>Violação dos termos de uso</option>
+          <option>Outro</option>
+        </select>
+      </div>
+      <div class="campo-grupo">
+        <label class="campo-label">Observação interna</label>
+        <textarea class="campo-input" id="bloquear-obs" rows="3" placeholder="Detalhes adicionais para registro interno…" style="resize:vertical;min-height:80px;font-weight:normal;"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal-cancelar" onclick="fecharModal('modal-bloquear-usuario')">Cancelar</button>
+        <button class="btn-modal-confirmar perigo" onclick="confirmarBloquear()">🚫 Bloquear usuário</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-resolver-denuncia" onclick="fecharModalFora(event,this)">
+    <div class="modal" style="width:500px;">
+      <div class="modal-header">
+        <div class="modal-icone-titulo">
+          <div class="modal-icone verde">✅</div>
+          <div><div class="modal-titulo">Resolver denúncia</div><div class="modal-subtitulo" id="resolver-denuncia-subtitulo">Registre a ação tomada</div></div>
+        </div>
+        <button class="btn-fechar-modal" onclick="fecharModal('modal-resolver-denuncia')">✕</button>
+      </div>
+      <div class="campo-grupo">
+        <label class="campo-label">Ação tomada *</label>
+        <select class="campo-select" id="resolver-acao" onchange="atualizarOpcaoResolver()">
+          <option value="">Selecione a ação</option>
+          <option value="aviso">Enviar aviso ao usuário</option>
+          <option value="remover-livro">Remover livro inadequado</option>
+          <option value="bloquear">Bloquear usuário</option>
+          <option value="improcedente">Marcar como improcedente</option>
+        </select>
+      </div>
+      <div class="campo-grupo" id="resolver-detalhe-wrap" style="display:none">
+        <label class="campo-label">Detalhes / Mensagem para o usuário</label>
+        <textarea class="campo-input" id="resolver-detalhe" rows="3" placeholder="Descreva a ação tomada ou a mensagem enviada ao usuário…" style="resize:vertical;min-height:80px;font-weight:normal;"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal-cancelar" onclick="fecharModal('modal-resolver-denuncia')">Cancelar</button>
+        <button class="btn-modal-confirmar verde" onclick="confirmarResolverDenuncia()">✅ Confirmar resolução</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const usuarioLogado = JSON.parse(sessionStorage.getItem('usuario'));
+    if (!usuarioLogado?.codusuario) window.location.href = 'index.html';
+    // Bloqueia acesso de quem não é administrador
+    if (usuarioLogado.tipo_usuario !== 'ADMIN') {
+      alert('Acesso restrito. Esta área é exclusiva para administradores.');
+      window.location.href = 'estante.html';
+    }
+
+    const cores = ['av-vermelho','av-amarelo','av-azul','av-verde','av-roxo','av-rosa'];
+
+    // Normaliza um registro do banco para o formato usado nesta tela
+    function normalizarUsuario(u) {
+      const statusMap = { 'Ativo':'ativo','Inativo':'inativo','Pausado':'pausado','Bloqueado':'bloqueado' };
+      return {
+        id:        u.codusuario,
+        nome:      u.nome,
+        email:     u.email,
+        cidade:    u.cidade || '—',
+        estado:    u.uf || '—',
+        role:      (u.tipo_usuario === 'ADMIN') ? 'admin' : 'usuario',
+        status:    statusMap[u.ativo] || 'ativo',
+        livros:    parseInt(u.livros) || 0,
+        avaliacao: '—',
+      };
+    }
+
+    let usuarios  = [];
+    let denuncias = [];
+
+    let denunciaResolvendo = null;
+    let usuarioBloqueando = null;
+    const POR_PAGINA = 9;
+    let paginaAtual = 1;
+    let usuarioEditandoId = null;
+    let usuarioExcluindoId = null;
+
+    function iniciais(nome) { return (nome||'?').split(' ').slice(0,2).map(p=>p[0]).join('').toUpperCase(); }
+    function corAvatar(id) { return cores[id % cores.length]; }
+
+    async function carregarUsuarios() {
+      try {
+        const resp = await fetch('api/admin_usuarios.php');
+        const dados = await resp.json();
+        usuarios = (dados.usuarios || []).map(normalizarUsuario);
+      } catch (e) {
+        usuarios = [];
+      }
+      renderContadores();
+      renderUsuarios();
+    }
+
+    async function carregarDenuncias() {
+      try {
+        const resp = await fetch('api/denuncia.php');
+        const dados = await resp.json();
+        denuncias = (dados.denuncias || []).map(d => ({
+          id: d.cod_denuncia,
+          tipo: (d.tipo && d.tipo.indexOf('Livro') === 0) ? 'livro' : 'usuario',
+          titulo: (d.tipo && d.tipo.indexOf('Livro') === 0) ? 'Denúncia de livro' : `Denúncia de usuário`,
+          desc: d.detalhes || d.motivo || 'Sem detalhes.',
+          hora: d.motivo || '',
+          status: 'aberta',
+          denunciante: d.denunciante || '—',
+        }));
+      } catch (e) {
+        denuncias = [];
+      }
+      renderDenuncias();
+    }
+
+    function renderContadores() {
+      const total   = usuarios.length;
+      const ativos  = usuarios.filter(u=>u.status==='ativo').length;
+      const inativos= usuarios.filter(u=>u.status==='inativo').length;
+      const pausados= usuarios.filter(u=>u.status==='pausado').length;
+      const admins  = usuarios.filter(u=>u.role==='admin').length;
+      const html = [
+        { num:total,    label:'Total',          extra:'' },
+        { num:ativos,   label:'Ativos',         extra:' destaque' },
+        { num:pausados, label:'Pausados',        extra:'' },
+        { num:inativos, label:'Inativos',        extra:'' },
+        { num:admins,   label:'Administradores', extra:'' },
+      ].map(c=>`<div class="contador-item${c.extra}"><div class="contador-num">${c.num}</div><div class="contador-label">${c.label}</div></div>`).join('');
+      document.getElementById('grid-contadores').style.gridTemplateColumns = 'repeat(5,1fr)';
+      document.getElementById('grid-contadores').innerHTML = html;
+    }
+
+    function usuariosFiltrados() {
+      const busca  = (document.getElementById('input-busca')?.value||'').toLowerCase();
+      const role   = document.getElementById('filtro-role')?.value||'';
+      const status = document.getElementById('filtro-status')?.value||'';
+      return usuarios.filter(u => {
+        const matchBusca  = !busca  || u.nome.toLowerCase().includes(busca) || u.email.toLowerCase().includes(busca);
+        const matchRole   = !role   || u.role === role;
+        const matchStatus = !status || u.status === status;
+        return matchBusca && matchRole && matchStatus;
+      });
+    }
+
+    function renderUsuarios() {
+      const lista = usuariosFiltrados();
+      const total = lista.length;
+      const inicio = (paginaAtual-1)*POR_PAGINA;
+      const pagina = lista.slice(inicio, inicio+POR_PAGINA);
+      const grid = document.getElementById('grid-usuarios');
+      const sem  = document.getElementById('sem-resultados');
+
+      if (pagina.length === 0) {
+        grid.innerHTML = ''; sem.style.display = 'block';
+      } else {
+        sem.style.display = 'none';
+        grid.innerHTML = pagina.map(u => {
+          const av = corAvatar(u.id);
+          const roleLabel  = {admin:'Administrador', usuario:'Usuário'}[u.role];
+          const statusMap  = {
+            ativo:     {label:'Ativo',     dot:'verde',    cls:'ativo'},
+            inativo:   {label:'Inativo',   dot:'cinza',    cls:'inactive'},
+            pausado:   {label:'Pausado',   dot:'laranja',  cls:'pausado'},
+            bloqueado: {label:'Bloqueado', dot:'vermelho', cls:'bloqueado'}
+          };
+          const st = statusMap[u.status];
+          return `
+          <div class="card-usuario">
+            <div class="usuario-topo">
+              <div class="usuario-avatar ${av}">${iniciais(u.nome)}</div>
+              <div>
+                <div class="usuario-nome">${u.nome}</div>
+                <div class="usuario-email">${u.email}</div>
+              </div>
+            </div>
+            <div class="usuario-badges">
+              <span class="badge-role ${u.role}">${roleLabel}</span>
+              <span class="badge-status ${st.cls}"><span class="dot ${st.dot}"></span>${st.label.replace('● ','')}</span>
+            </div>
+            <div class="usuario-info-linha">📍 ${u.cidade}, ${u.state || u.estado}</div>
+            <div class="usuario-info-linha">📚 ${u.livros} livros &nbsp;·&nbsp; ⭐ ${u.avaliacao}</div>
+            <div class="usuario-acoes">
+              <button class="btn-acao-usuario" onclick="abrirEdicao(${u.id})">✏️ Editar</button>
+              <button class="btn-acao-usuario perigo" onclick="abrirBloquear(${u.id})">${u.status==='bloqueado'?'🔓 Desbloquear':'🚫 Bloquear'}</button>
+              <button class="btn-acao-usuario perigo" onclick="abrirExcluir(${u.id})">🗑️ Excluir</button>
+            </div>
+          </div>`;
+        }).join('');
+      }
+      renderPaginacao(total);
+    }
+
+    function renderPaginacao(total) {
+      const totalPag = Math.ceil(total / POR_PAGINA);
+      const wrap = document.getElementById('paginacao');
+      if (totalPag <= 1) { wrap.innerHTML=''; return; }
+      let html = '';
+      for(let i=1;i<=totalPag;i++) {
+        html += `<button class="pag-btn${i===paginaAtual?' ativo':''}" onclick="irPagina(${i})">${i}</button>`;
+      }
+      wrap.innerHTML = html;
+    }
+
+    function irPagina(n) { paginaAtual = n; renderUsuarios(); }
+    function filtrarUsuarios() { paginaAtual = 1; renderUsuarios(); }
+
+    function abrirEdicao(id) {
+      const u = usuarios.find(x=>x.id===id);
+      if (!u) return;
+      usuarioEditandoId = id;
+      document.getElementById('edit-subtitulo').textContent = `Editar: ${u.nome}`;
+      document.getElementById('edit-nome').value   = u.nome;
+      document.getElementById('edit-email').value  = u.email;
+      document.getElementById('edit-cidade').value = u.cidade;
+      document.getElementById('edit-estado').value = u.state || u.estado;
+      document.getElementById('edit-senha').value  = '';
+      document.getElementById('edit-role').value   = u.role;
+      document.getElementById('edit-status').value = u.status;
+      abrirModal('modal-editar-usuario');
+    }
+
+    async function salvarEdicao() {
+      const u = usuarios.find(x=>x.id===usuarioEditandoId);
+      if (!u) return;
+      const payload = {
+        acao: 'editar',
+        codusuario: usuarioEditandoId,
+        nome:   document.getElementById('edit-nome').value || u.nome,
+        email:  document.getElementById('edit-email').value || u.email,
+        cidade: document.getElementById('edit-cidade').value || u.cidade,
+        uf:     document.getElementById('edit-estado').value || u.estado,
+        role:   document.getElementById('edit-role').value,
+        status: document.getElementById('edit-status').value,
+        senha:  document.getElementById('edit-senha').value || '',
+      };
+      try {
+        const resp = await fetch('api/admin_usuarios.php', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const dados = await resp.json();
+        if (dados.sucesso) {
+          fecharModal('modal-editar-usuario');
+          await carregarUsuarios();
+          mostrarToast('✅ Usuário atualizado com sucesso!');
+        } else {
+          mostrarToast(dados.erro || '❌ Erro ao salvar.');
+        }
+      } catch (e) { mostrarToast('❌ Erro ao conectar com o servidor.'); }
+    }
+
+    function abrirExcluir(id) {
+      const u = usuarios.find(x=>x.id===id);
+      if (!u) return;
+      usuarioExcluindoId = id;
+      document.getElementById('excluir-subtitulo').textContent = `Excluir: ${u.nome}`;
+      document.getElementById('input-confirmar-excluir').value = '';
+      const btn = document.getElementById('btn-confirmar-excluir-user');
+      btn.disabled = true; btn.style.opacity='0.4'; btn.style.cursor='not-allowed';
+      abrirModal('modal-excluir-usuario');
+    }
+
+    function verificarConfirmacaoExcluirUser(val) {
+      const btn = document.getElementById('btn-confirmar-excluir-user');
+      const ok = val === 'EXCLUIR';
+      btn.disabled = !ok;
+      btn.style.opacity = ok ? '1' : '0.4';
+      btn.style.cursor  = ok ? 'pointer' : 'not-allowed';
+    }
+
+    async function confirmarExcluirUsuario() {
+      try {
+        const resp = await fetch('api/admin_usuarios.php', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ acao: 'excluir', codusuario: usuarioExcluindoId }),
+        });
+        const dados = await resp.json();
+        if (dados.sucesso) {
+          fecharModal('modal-excluir-usuario');
+          await carregarUsuarios();
+          mostrarToast('🗑️ Usuário inativado com sucesso.');
+        } else {
+          mostrarToast(dados.erro || '❌ Erro ao excluir.');
+        }
+      } catch (e) { mostrarToast('❌ Erro ao conectar com o servidor.'); }
+    }
+
+    async function criarUsuario() {
+      const nome  = document.getElementById('novo-nome').value.trim();
+      const email = document.getElementById('novo-email').value.trim();
+      const senha = document.getElementById('novo-senha').value;
+      const role  = document.getElementById('novo-role').value;
+      if (!nome)  { mostrarToast('⚠️ Digite o nome completo.'); return; }
+      if (!email) { mostrarToast('⚠️ Digite o e-mail.'); return; }
+      if (!senha) { mostrarToast('⚠️ Digite uma senha.'); return; }
+      if (!role)  { mostrarToast('⚠️ Selecione um perfil de acesso.'); return; }
+      try {
+        const resp = await fetch('api/admin_usuarios.php', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            acao: 'criar', nome, email, senha, role,
+            cidade: document.getElementById('novo-cidade').value || '',
+            uf: document.getElementById('novo-estado').value || '',
+          }),
+        });
+        const dados = await resp.json();
+        if (dados.sucesso) {
+          fecharModal('modal-novo-usuario');
+          document.getElementById('novo-nome').value = '';
+          document.getElementById('novo-email').value = '';
+          document.getElementById('novo-senha').value = '';
+          await carregarUsuarios();
+          mostrarToast('✅ Usuário criado com sucesso!');
+        } else {
+          mostrarToast(dados.erro || '❌ Erro ao criar usuário.');
+        }
+      } catch (e) { mostrarToast('❌ Erro ao conectar com o servidor.'); }
+    }
+
+    function gerarSenha() {
+      const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$';
+      let senha = '';
+      for(let i=0;i<12;i++) senha += chars[Math.floor(Math.random()*chars.length)];
+      const input = document.getElementById('novo-senha');
+      input.type = 'text'; input.value = senha;
+      mostrarToast('🎲 Senha gerada! Copie antes de salvar.');
+    }
+
+    async function abrirBloquear(id) {
+      const u = usuarios.find(x=>x.id===id);
+      if (!u) return;
+      if (u.status === 'bloqueado') {
+        // Desbloqueia direto via API
+        try {
+          await fetch('api/admin_usuarios.php', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ acao: 'status', codusuario: id, status: 'ativo' }),
+          });
+          await carregarUsuarios();
+          mostrarToast(`🔓 ${u.nome} foi desbloqueado.`);
+        } catch (e) { mostrarToast('❌ Erro ao desbloquear.'); }
+        return;
+      }
+      usuarioBloqueando = id;
+      document.getElementById('bloquear-subtitulo').textContent = `Bloquear: ${u.nome}`;
+      abrirModal('modal-bloquear-usuario');
+    }
+
+    async function confirmarBloquear() {
+      const motivo = document.getElementById('bloquear-motivo').value;
+      if (!motivo) { mostrarToast('⚠️ Selecione o motivo do bloqueio.'); return; }
+      const obs = document.getElementById('bloquear-obs').value.trim();
+      try {
+        const resp = await fetch('api/admin_usuarios.php', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ acao: 'status', codusuario: usuarioBloqueando, status: 'bloqueado', motivo, obs }),
+        });
+        const dados = await resp.json();
+        if (dados.sucesso) {
+          fecharModal('modal-bloquear-usuario');
+          await carregarUsuarios();
+          mostrarToast('🚫 Usuário bloqueado com sucesso.');
+        } else {
+          mostrarToast(dados.erro || '❌ Erro ao bloquear.');
+        }
+      } catch (e) { mostrarToast('❌ Erro ao conectar com o servidor.'); }
+    }
+
+    function denunciasFiltradas() {
+      const tipo   = document.getElementById('filtro-tipo-denuncia')?.value||'';
+      const status = document.getElementById('filtro-status-denuncia')?.value||'';
+      return denuncias.filter(d => {
+        const matchTipo   = !tipo   || d.tipo === tipo;
+        const matchStatus = !status || d.status === status;
+        return matchTipo && matchStatus;
+      });
+    }
+
+    function renderDenuncias() {
+      const lista = denunciasFiltradas();
+      const grid  = document.getElementById('grid-denuncias');
+      const sem   = document.getElementById('sem-resultados-denuncia');
+      const abertas = denuncias.filter(d=>d.status==='aberta').length;
+      const badge = document.getElementById('badge-denuncias');
+      if (badge) { badge.textContent = abertas; badge.style.display = abertas > 0 ? '' : 'none'; }
+      if (lista.length === 0) { grid.innerHTML=''; sem.style.display='block'; return; }
+      sem.style.display = 'none';
+      grid.innerHTML = lista.map(d => `
+        <div class="card-denuncia">
+          <div class="denuncia-icone ${d.tipo}">${d.tipo==='livro'?'📚':'👤'}</div>
+          <div class="denuncia-corpo">
+            <div class="denuncia-titulo">${d.titulo}</div>
+            <div class="denuncia-desc">${d.desc}</div>
+            <div class="denuncia-meta">⏰ ${d.hora} &nbsp;·&nbsp; Denunciado por: <strong>${d.denunciante}</strong></div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0;">
+            <span class="badge-denuncia ${d.status}">${d.status==='aberta'?'⚠️ Aberta':'✅ Resolvida'}</span>
+            ${d.status==='aberta' ? `
+            <div class="denuncia-acoes">
+              <button class="btn-resolver" onclick="abrirResolverDenuncia(${d.id})">✅ Resolver</button>
+              <button class="btn-ignorar" onclick="ignorarDenuncia(${d.id})">Ignorar</button>
+            </div>` : ''}
+          </div>
+        </div>`).join('');
+    }
+
+    function filtrarDenuncias() { renderDenuncias(); }
+
+    function abrirResolverDenuncia(id) {
+      const d = denuncias.find(x=>x.id===id);
+      if (!d) return;
+      denunciaResolvendo = id;
+      document.getElementById('resolver-denuncia-subtitulo').textContent = `Denúncia: ${d.titulo}`;
+      abrirModal('modal-resolver-denuncia');
+    }
+
+    function atualizarOpcaoResolver() {
+      const acao = document.getElementById('resolver-acao').value;
+      document.getElementById('resolver-detalhe-wrap').style.display = acao ? 'block' : 'none';
+    }
+
+    async function resolverNoBanco(codDenuncia) {
+      const resp = await fetch('api/denuncia.php', {
+        method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cod_denuncia: codDenuncia }),
+      });
+      return (await resp.json()).sucesso;
+    }
+
+    async function confirmarResolverDenuncia() {
+      const acao = document.getElementById('resolver-acao').value;
+      if (!acao) { mostrarToast('⚠️ Selecione a ação tomada.'); return; }
+      try {
+        const ok = await resolverNoBanco(denunciaResolvendo);
+        fecharModal('modal-resolver-denuncia');
+        if (ok) {
+          await carregarDenuncias();
+          mostrarToast('✅ Denúncia resolvida com sucesso!');
+        } else {
+          mostrarToast('❌ Erro ao resolver denúncia.');
+        }
+      } catch (e) { mostrarToast('❌ Erro ao conectar com o servidor.'); }
+    }
+
+    async function ignorarDenuncia(id) {
+      try {
+        const ok = await resolverNoBanco(id);
+        if (ok) {
+          await carregarDenuncias();
+          mostrarToast('ℹ️ Denúncia marcada como improcedente.');
+        } else {
+          mostrarToast('❌ Erro ao processar denúncia.');
+        }
+      } catch (e) { mostrarToast('❌ Erro ao conectar com o servidor.'); }
+    }
+
+    const NOMES_UF = {
+      AC:'Acre',AL:'Alagoas',AP:'Amapá',AM:'Amazonas',BA:'Bahia',CE:'Ceará',DF:'Distrito Federal',
+      ES:'Espírito Santo',GO:'Goiás',MA:'Maranhão',MT:'Mato Grosso',MS:'Mato Grosso do Sul',
+      MG:'Minas Gerais',PA:'Pará',PB:'Paraíba',PR:'Paraná',PE:'Pernambuco',PI:'Piauí',
+      RJ:'Rio de Janeiro',RN:'Rio Grande do Norte',RS:'Rio Grande do Sul',RO:'Rondônia',
+      RR:'Roraima',SC:'Santa Catarina',SP:'São Paulo',SE:'Sergipe',TO:'Tocantins'
+    };
+
+    async function renderEstatisticas() {
+      try {
+        const resp = await fetch('api/admin_estatisticas.php');
+        const d = await resp.json();
+
+        // Cards principais
+        const cards = [
+          { num: d.cards.usuarios, label: 'Usuários cadastrados' },
+          { num: d.cards.trocas,   label: 'Trocas (matches) realizadas' },
+          { num: d.cards.livros,   label: 'Livros cadastrados' },
+          { num: d.cards.pausadas, label: 'Contas pausadas' },
+        ];
+        document.getElementById('grid-stats').innerHTML = cards.map(s=>`
+          <div class="stat-card">
+            <div class="stat-num">${s.num}</div>
+            <div class="stat-label">${s.label}</div>
+          </div>`).join('');
+
+        // Usuários por perfil
+        document.getElementById('grid-perfil').innerHTML = `
+          <div class="barra-progresso-wrap">
+            <div class="barra-progresso-label"><span>Usuários (${d.perfil.comuns})</span><span>${d.perfil.pct_comuns}%</span></div>
+            <div class="barra-progresso"><div class="barra-progresso-fill" style="width:${d.perfil.pct_comuns}%"></div></div>
+          </div>
+          <div class="barra-progresso-wrap">
+            <div class="barra-progresso-label"><span>Administradores (${d.perfil.admins})</span><span>${d.perfil.pct_admins}%</span></div>
+            <div class="barra-progresso"><div class="barra-progresso-fill vermelho" style="width:${d.perfil.pct_admins}%"></div></div>
+          </div>`;
+
+        // Top estados
+        const corBarra = ['', 'verde', 'vermelho', '', 'verde'];
+        const estados = d.top_estados || [];
+        document.getElementById('grid-estados').innerHTML = estados.length
+          ? estados.map((e, i)=>`
+              <div class="barra-progresso-wrap">
+                <div class="barra-progresso-label"><span>${NOMES_UF[e.uf] || e.uf} (${e.total})</span><span>${e.pct}%</span></div>
+                <div class="barra-progresso"><div class="barra-progresso-fill ${corBarra[i]||''}" style="width:${e.pct}%"></div></div>
+              </div>`).join('')
+          : '<p style="color:#a6a6a6;font-size:13px;">Sem dados de localização ainda.</p>';
+      } catch (e) {
+        document.getElementById('grid-stats').innerHTML = '<p style="color:#a6a6a6;">Erro ao carregar estatísticas.</p>';
+      }
+    }
+
+    function trocarAba(id, btn) {
+      document.querySelectorAll('.secao').forEach(s => s.classList.remove('ativa'));
+      document.querySelectorAll('.aba').forEach(b => { b.classList.remove('ativa'); b.classList.add('inativa'); });
+      document.getElementById('secao-' + id).classList.add('ativa');
+      btn.classList.add('ativa'); btn.classList.remove('inativa');
+      if(id === 'denuncias') { carregarDenuncias(); }
+    }
+
+    function abrirModal(id) { document.getElementById(id).classList.add('aberto'); document.body.style.overflow='hidden'; }
+    function fecharModal(id) { document.getElementById(id).classList.remove('aberto'); document.body.style.overflow=''; }
+    function fecharModalFora(event, overlay) { if (event.target === overlay) fecharModal(overlay.id); }
+
+    function mostrarToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('visivel');
+      setTimeout(() => t.classList.remove('visivel'), 3000);
+    }
+
+    function toggleSenha(id, btn) {
+      const input = document.getElementById(id);
+      if (input.type==='password') { input.type='text'; btn.textContent='🙈'; }
+      else { input.type='password'; btn.textContent='👁️'; }
+    }
+
+    function logoutDoSistema() {
+      sessionStorage.clear();
+      window.location.href = 'index.html';
+    }
+
+    carregarUsuarios();
+    carregarDenuncias();
+    renderEstatisticas();
+  </script>
+  <script src="badge_mensagens.js"></script>
+</body>
+</html>

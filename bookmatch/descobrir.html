@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BookMatch - Descobrir Livros</title>
+  <style>
+    @font-face {
+      font-family: 'Radiant Charisma';
+      src: url('fonts/RadiantCharismaDEMO-Medium.ttf') format('truetype');
+    }
+    @font-face {
+      font-family: 'Quicksand';
+      src: url('fonts/Quicksand-Bold.ttf') format('truetype');
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      display: flex;
+      height: 100vh;
+      font-family: 'Quicksand', sans-serif;
+      background-color: #fffdf3;
+      overflow: hidden;
+    }
+
+    .barra-lateral {
+      width: 280px;
+      min-width: 280px;
+      background-color: #701d1c;
+      display: flex;
+      flex-direction: column;
+      padding: 50px 0 0 0;
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+    }
+    .barra-lateral::before {
+      content: '';
+      position: absolute;
+      bottom: -80px; left: -80px;
+      width: 300px; height: 300px;
+      background: rgba(173, 114, 114, 0.22);
+      border-radius: 45% 55% 40% 60%;
+      pointer-events: none;
+    }
+    .barra-lateral::after {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 180px; height: 180px;
+      background: rgba(173, 114, 114, 0.22);
+      border-radius: 60% 40% 55% 45%;
+      pointer-events: none;
+    }
+    .container-nome-sistema {
+      padding: 0 30px 50px;
+      z-index: 2;
+    }
+    .container-nome-sistema h1 {
+      font-family: 'Radiant Charisma';
+      font-size: 36px;
+      line-height: 0.9;
+    }
+    .container-nome-sistema h1 span:first-child { color: #bcb24d; }
+    .container-nome-sistema h1 span:last-child  { color: #e6a921; }
+    .rotulo-nav {
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      color: rgba(255,255,255,0.5);
+      padding: 20px 30px 10px;
+      z-index: 2;
+      font-weight: bold;
+    }
+    .item-nav {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 30px;
+      color: #ffffff;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.3s;
+      z-index: 2;
+      text-decoration: none;
+    }
+    .item-nav:hover { background: rgba(255,255,255,0.1); }
+    .item-nav.ativo {
+      background: rgba(255,255,255,0.15);
+      font-weight: bold;
+      border-left: 4px solid #e6a921;
+    }
+    .notificacao {
+      margin-left: auto;
+      background: #e4568b;
+      color: #fff;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    /* Rodapé do menu lateral - Botão Sair */
+    .container-conta-nav {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      z-index: 2;
+      padding-bottom: 20px;
+    }
+    .btn-sair-lateral {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 30px;
+      color: #ffffff;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.3s;
+      text-decoration: none;
+      background: transparent;
+      border: none;
+      width: 100%;
+      text-align: left;
+      font-family: 'Quicksand', sans-serif;
+      font-weight: bold;
+    }
+    .btn-sair-lateral:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .conteudo {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background-color: #fffdf3;
+      position: relative;
+    }
+    .page-title {
+      font-family: 'Radiant Charisma';
+      font-size: 36px;
+      color: #2c2c2c;
+      margin-bottom: 20px;
+      position: absolute;
+      top: 28px;
+    }
+
+    .card-stack {
+      position: relative;
+      width: 400px;
+      height: 450px;
+    }
+    .livro-card {
+      position: absolute;
+      width: 400px;
+      background: #ede9d3;
+      border-radius: 20px;
+      overflow: hidden;
+      z-index: 10;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+      transition: transform 0.08s ease;
+      cursor: grab;
+      user-select: none;
+      top: 0;
+    }
+    .livro-card:active { cursor: grabbing; }
+    .livro-card.swipe-left  { animation: sairEsquerda 0.4s ease forwards; }
+    .livro-card.swipe-right { animation: sairDireita  0.4s ease forwards; }
+    @keyframes sairEsquerda { to { transform: translateX(-140%) rotate(-20deg); opacity: 0; } }
+    @keyframes sairDireita  { to { transform: translateX( 140%) rotate( 20deg); opacity: 0; } }
+
+    .swipe-overlay {
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      border-radius: 20px; z-index: 20;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Radiant Charisma'; font-size: 52px;
+      opacity: 0; pointer-events: none; transition: opacity 0.15s;
+    }
+    .swipe-overlay.like { background: rgba(110,190,110,0.25); color: #2e7d32; }
+    .swipe-overlay.nope { background: rgba(220, 80, 80,0.25); color: #c62828; }
+
+    .fotos-container {
+      position: relative; width: 100%; height: 240px;
+      background: #c0b090; overflow: hidden;
+    }
+    .fotos-slider { display: flex; height: 100%; transition: transform 0.35s ease; }
+    .foto-slide { min-width: 100%; height: 100%; object-fit: cover; flex-shrink: 0; }
+    .foto-slide.placeholder {
+      display: flex; align-items: center; justify-content: center;
+      background: #c0b090; font-size: 64px;
+    }
+    .foto-dots {
+      position: absolute; bottom: 10px; left: 50%;
+      transform: translateX(-50%); display: flex; gap: 5px; z-index: 5;
+    }
+    .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: rgba(255,255,255,0.5);
+      transition: background 0.2s, transform 0.2s;
+    }
+    .dot.ativo { background: white; transform: scale(1.3); }
+    .seta-foto {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      background: rgba(0,0,0,0.3); color: white; border: none;
+      border-radius: 50%; width: 30px; height: 30px; font-size: 14px;
+      cursor: pointer; z-index: 5; display: flex; align-items: center;
+      justify-content: center; transition: background 0.2s;
+    }
+    .seta-foto:hover { background: rgba(0,0,0,0.55); }
+    .seta-foto.esq { left: 10px; }
+    .seta-foto.dir { right: 10px; }
+    
+    .btn-denunciar {
+      position: absolute; top: 12px; right: 12px;
+      background: rgba(40, 10, 10, 0.4); color: white; border: none;
+      border-radius: 50%; width: 32px; height: 32px; font-size: 14px;
+      cursor: pointer; z-index: 6; display: flex; align-items: center;
+      justify-content: center; transition: background 0.2s, transform 0.2s;
+    }
+    .btn-denunciar:hover { background: #b33a3a; transform: scale(1.1); }
+
+    .card-body { padding: 16px 18px 18px; }
+    .dono-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    
+    .dono-nome { font-family: 'Radiant Charisma'; font-size: 15px; color: #701d1c; cursor: pointer; }
+    .dono-nome:hover { text-decoration: underline; }
+    
+    .dono-cidade { font-size: 11px; color: #a6a6a6; }
+    .avaliacao {
+      display: flex; align-items: center; gap: 5px;
+      background: #701d1c; color: white; border-radius: 20px;
+      padding: 5px 12px; font-size: 13px; font-weight: 700;
+    }
+    .avaliacao .estrela { color: #e6a921; font-size: 14px; }
+    .trocas-feitas { font-size: 10px; color: rgba(255,255,255,0.7); margin-left: 2px; }
+    .divisor { border: none; border-top: 1px solid rgba(0,0,0,0.08); margin: 10px 0; }
+    .livro-titulo { font-family: 'Radiant Charisma'; font-size: 20px; color: #2c2c2c; margin-bottom: 2px; line-height: 1.2; }
+    .livro-autor { font-size: 12px; color: #a6a6a6; margin-bottom: 10px; }
+    .secao-generos { margin-bottom: 10px; }
+    .generos-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; color: #a6a6a6; margin-bottom: 6px; }
+    .generos-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tag-genero { padding: 4px 12px; border-radius: 14px; font-size: 11px; font-weight: 700; background: #e6a921; color: white; }
+    .tag-genero.comum { background: #701d1c; color: white; position: relative; }
+    .tag-genero.comum::before { content: '✓ '; font-size: 10px; opacity: 0.8; }
+    .estado-row { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #a6a6a6; }
+    .estado-bolinha { width: 8px; height: 8px; border-radius: 50%; }
+    .estado-otimo  { background: #4caf50; }
+    .estado-bom    { background: #8bc34a; }
+    .estado-usado  { background: #e6a921; }
+    .estado-marcas { background: #ff9800; }
+
+    .acoes { display: flex; justify-content: center; align-items: center; gap: 24px; margin-top: 22px; }
+    .btn-acao { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; background: none; border: none; font-family: 'Quicksand'; }
+    .btn-acao .circulo {
+      width: 60px; height: 60px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-acao:hover .circulo { transform: scale(1.1); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
+    .btn-acao:active .circulo { transform: scale(0.95); }
+    .btn-acao .label { font-size: 12px; font-weight: 700; color: #a6a6a6; }
+    .btn-proximo .circulo { background: white; }
+    .btn-curtir  .circulo { background: #701d1c; }
+
+    .toast {
+      position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+      background-color: #701d1c; color: white; padding: 12px 28px;
+      border-radius: 30px; font-size: 14px; font-family: 'Quicksand';
+      font-weight: 700; opacity: 0; transition: opacity 0.3s;
+      z-index: 9999; pointer-events: none; white-space: nowrap;
+    }
+    .toast.visivel { opacity: 1; }
+
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(40,10,10,0.45);
+      backdrop-filter: blur(4px); display: flex; align-items: center;
+      justify-content: center; z-index: 1000; opacity: 0; pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .modal-overlay.aberto { opacity: 1; pointer-events: all; }
+    .modal {
+      background: #fffdf3; border-radius: 24px; padding: 36px 40px;
+      width: 480px; max-width: 95vw; max-height: 90vh; overflow-y: auto;
+      box-shadow: 0 24px 60px rgba(112,29,28,0.18);
+      transform: translateY(18px) scale(0.97);
+      transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease;
+      opacity: 0; position: relative;
+    }
+    .modal-overlay.aberto .modal { transform: translateY(0) scale(1); opacity: 1; }
+    .modal-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+    .modal-icone-titulo { display: flex; align-items: center; gap: 14px; }
+    .modal-icone {
+      width: 44px; height: 44px; border-radius: 12px; display: flex;
+      align-items: center; justify-content: center; font-size: 20px;
+      flex-shrink: 0; background: #fdf0f0; color: #b33a3a;
+    }
+    .modal-titulo { font-size: 18px; font-weight: bold; color: #2c2c2c; }
+    .modal-subtitulo { font-size: 12px; color: #a6a6a6; margin-top: 3px; }
+    .btn-fechar-modal {
+      background: #ede9d3; border: none; border-radius: 50%;
+      width: 32px; height: 32px; font-size: 16px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: #888; transition: background 0.2s; flex-shrink: 0;
+    }
+    .btn-fechar-modal:hover { background: #d4cdb8; color: #701d1c; }
+    .campo-grupo { margin-bottom: 20px; text-align: left; }
+    .campo-label { display: block; font-size: 11px; font-weight: bold; color: #701d1c; margin-bottom: 7px; letter-spacing: 0.5px; text-transform: uppercase; }
+    .campo-select {
+      width: 100%; padding: 12px 16px; border: 1.5px solid #d4cdb8;
+      border-radius: 12px; background: #fffdf3; font-family: 'Quicksand';
+      font-size: 14px; font-weight: bold; color: #2c2c2c; outline: none;
+      cursor: pointer; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23a6a6a6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px;
+    }
+    .campo-input {
+      width: 100%; padding: 12px 16px; border: 1.5px solid #d4cdb8;
+      border-radius: 12px; background: #fffdf3; font-family: 'Quicksand';
+      font-size: 14px; color: #2c2c2c; outline: none; resize: vertical; min-height: 80px;
+    }
+    .campo-input:focus, .campo-select:focus { border-color: #701d1c; }
+    .modal-footer { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; padding-top: 18px; border-top: 1.5px solid #ede9d3; }
+    .btn-modal-cancelar { padding: 10px 24px; border-radius: 20px; border: 1.5px solid #d4cdb8; background: transparent; font-family: 'Quicksand'; font-size: 13px; font-weight: bold; color: #888; cursor: pointer; transition: 0.2s; }
+    .btn-modal-cancelar:hover { border-color: #a6a6a6; color: #2c2c2c; }
+    .btn-modal-confirmar { padding: 10px 28px; border-radius: 20px; border: none; background: #b33a3a; font-family: 'Quicksand'; font-size: 13px; font-weight: bold; color: #fff; cursor: pointer; transition: 0.2s; }
+    .btn-modal-confirmar:hover { background: #922e2e; }
+
+    .fim-cards { display: none; flex-direction: column; align-items: center; gap: 16px; color: #a6a6a6; text-align: center; }
+    .fim-cards .emoji { font-size: 52px; }
+    .fim-cards .titulo { font-family: 'Radiant Charisma'; font-size: 22px; color: #2c2c2c; }
+    .fim-cards .sub { font-size: 13px; }
+    .btn-recarregar { padding: 12px 28px; background: #701d1c; color: white; border: none; border-radius: 24px; font-family: 'Quicksand'; font-size: 14px; font-weight: 700; cursor: pointer; }
+    .btn-recarregar:hover { background: #5a1615; }
+  </style>
+</head>
+<body>
+
+  <aside class="barra-lateral">
+    <div class="container-nome-sistema">
+      <h1>
+        <span>book</span><br>
+        <span>match</span>
+      </h1>
+    </div>
+
+    <span class="rotulo-nav">PRINCIPAL</span>
+    <a class="item-nav" href="estante.html">📚 Minha Estante</a>
+    <a class="item-nav" href="adicionarlivro.html">🔍 Adicionar Livro</a>
+    <a class="item-nav ativo" href="descobrir.html">🔎 Descobrir Livros</a>
+    <a class="item-nav" href="curtidas.html"> 💕 Curtidas</a>
+    <a class="item-nav" href="mensagens.html">💬 Mensagens <span class="notificacao" id="badgeMsgs" style="display:none;">0</span></a>
+    <a class="item-nav" href="configuracao.html">⚙️ Configurações</a>
+
+    <span class="rotulo-nav">SUAS LISTAS</span>
+    <a class="item-nav" href="matches.html">❤️ Matches</a>
+    <a class="item-nav" href="troca.html">✅ Trocas</a>
+    <a class="item-nav" href="queroler.html">🛒 Quero ler</a>
+
+    <div class="container-conta-nav">
+      <span class="rotulo-nav">CONTA</span>
+      <button class="btn-sair-lateral" onclick="logoutDoSistema()">🚪 Sair</button>
+    </div>
+  </aside>
+
+  <div class="conteudo">
+    <div class="page-title">Descobrir Livros</div>
+
+    <div class="card-stack" id="cardStack">
+      <div class="livro-card" id="cardAtual">
+        <div class="swipe-overlay like" id="overlayLike">💚 Curtir!</div>
+        <div class="swipe-overlay nope" id="overlayNope">✕ Próximo</div>
+
+        <div class="fotos-container" id="fotosContainer">
+          <button class="btn-denunciar" onclick="abrirModalDenuncia(event)" title="Denunciar este livro ou usuário">🚨</button>
+
+          <div class="fotos-slider" id="fotosSlider"></div>
+          <div class="foto-dots" id="fotoDots"></div>
+          <button class="seta-foto esq" onclick="mudarFoto(-1)" id="setaEsq">‹</button>
+          <button class="seta-foto dir" onclick="mudarFoto(1)"  id="setaDir">›</button>
+          <input type="file" id="inputFoto" accept="image/*" style="display: none;">
+        </div>
+
+        <div class="card-body">
+          <div class="dono-row">
+            <div>
+              <div class="dono-nome" id="donoNome"></div>
+              <div class="dono-cidade" id="donoCidade"></div>
+            </div>
+            <div class="avaliacao">
+              <span class="estrela">★</span>
+              <span id="donoNota"></span>
+              <span class="trocas-feitas" id="donoTrocas"></span>
+            </div>
+          </div>
+          <hr class="divisor">
+          <div class="livro-titulo" id="livroTitulo"></div>
+          <div class="livro-autor"  id="livroAutor"></div>
+          <div class="secao-generos">
+            <div class="generos-label">GÊNEROS EM COMUM</div>
+            <div class="generos-row" id="generosRow"></div>
+          </div>
+          <div class="estado-row">
+            <div class="estado-bolinha" id="estadoBolinha"></div>
+            <span id="estadoTexto"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fim-cards" id="fimCards">
+      <div class="emoji">📚</div>
+      <div class="titulo">Você viu tudo por hoje!</div>
+      <div class="sub">Volte mais tarde para novos livros disponíveis.</div>
+      <button class="btn-recarregar" onclick="reiniciar()">Recomeçar</button>
+    </div>
+
+    <div class="acoes" id="acoesDiv">
+      <button class="btn-acao btn-proximo" onclick="proxLivro()">
+        <div class="circulo">❌</div>
+        <span class="label">Próximo</span>
+      </button>
+      <button class="btn-acao btn-curtir" onclick="curtirLivro()">
+        <div class="circulo">❤️</div>
+        <span class="label">Curtir</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-denunciar" onclick="fecharModalFora(event, this)">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-icone-titulo">
+          <div class="modal-icone">🚨</div>
+          <div>
+            <div class="modal-titulo">Enviar Denúncia</div>
+            <div class="modal-subtitulo" id="denuncia-subtitulo">Ajude-nos a manter a comunidade segura</div>
+          </div>
+        </div>
+        <button class="btn-fechar-modal" onclick="fecharModal('modal-denunciar')">✕</button>
+      </div>
+
+      <div class="campo-grupo">
+        <label class="campo-label">Tipo de Denúncia</label>
+        <select class="campo-select" id="denuncia-tipo">
+          <option value="livro">Livro inadequado (Capa, descrição ou informações erradas)</option>
+          <option value="usuario">Usuário (Comportamento ou perfil suspeito)</option>
+        </select>
+      </div>
+
+      <div class="campo-grupo">
+        <label class="campo-label">Motivo principal *</label>
+        <select class="campo-select" id="denuncia-motivo">
+          <option value="">Selecione um motivo...</option>
+          <option value="Conteúdo impróprio">Conteúdo impróprio / ofensivo</option>
+          <option value="Comportamento inadequado">Comportamento inadequado</option>
+          <option value="Spam">Spam</option>
+          <option value="Fraude ou golpe">Suspeita de fraude ou golpe</option>
+          <option value="Outro">Outro motivo</option>
+        </select>
+      </div>
+
+      <div class="campo-grupo">
+        <label class="campo-label">Detalhes da denúncia</label>
+        <textarea class="campo-input" id="denuncia-detalhes" placeholder="Descreva brevemente o que aconteceu para que a moderação possa analisar..."></textarea>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-modal-cancelar" onclick="fecharModal('modal-denunciar')">Cancelar</button>
+        <button class="btn-modal-confirmar" onclick="enviarDenuncia()">Enviar denúncia</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const usuario = JSON.parse(sessionStorage.getItem('usuario'));
+    if (!usuario?.codusuario) window.location.href = 'index.html';
+
+    const generosDoUsuario = [];
+
+    let livros = [];
+    let indiceAtual = 0, fotoAtual = 0, fotosCard = [];
+
+    async function carregarLivros() {
+      try {
+        const resp = await fetch(`api/descobrir.php?usuario=${usuario.codusuario}`);
+        const dados = await resp.json();
+        livros = (dados.livros || []).map(l => ({
+          id: l.codlivro,
+          estante_cod: l.estante_cod,
+          dono_id: l.dono_id,
+          titulo: l.titulo || 'Livro',
+          autor: l.autor || '',
+          dono: { id: l.dono_id, nome: l.dono_nome || 'Usuário', cidade: l.dono_cidade || '', nota: 0, trocas: 0 },
+          generos: l.genero ? [l.genero] : [],
+          estado: 'bom',
+          fotos: [{ tipo: 'capa', url: l.foto || null, label: 'Capa' }],
+        }));
+        indiceAtual = 0;
+        if (!livros.length) { mostrarFimCards(); }
+        else { renderizarCard(0); }
+      } catch (e) {
+        mostrarFimCards();
+      }
+    }
+    let arrastando = false, startX = 0, currentX = 0;
+
+    const estadoConfig = {
+      otimo:  { classe: 'estado-otimo',  texto: 'Estado: Ótimo — como novo' },
+      bom:    { classe: 'estado-bom',    texto: 'Estado: Bom — bem conservado' },
+      usado:  { classe: 'estado-usado',  texto: 'Estado: Usado — algumas marcas' },
+      marcas: { classe: 'estado-marcas', texto: 'Estado: Desgastado — marcas visíveis' },
+    };
+
+    function renderizarCard(idx) {
+      const libro = livros[idx];
+      if (!libro) { mostrarFimCards(); return; }
+      fotoAtual = 0;
+      fotosCard = [...libro.fotos];
+      
+      const nomeEl = document.getElementById('donoNome');
+      nomeEl.textContent = libro.dono.nome;
+      nomeEl.onclick = function() {
+        window.location.href = `perfil.html?id=${libro.dono.id}`;
+      };
+
+      document.getElementById('donoCidade').textContent  = libro.dono.cidade ? `📍 ${libro.dono.cidade}` : '';
+      document.getElementById('donoNota').textContent    = libro.dono.nota ? libro.dono.nota.toFixed(1) : '—';
+      document.getElementById('donoTrocas').textContent  = '';
+      document.getElementById('livroTitulo').textContent = libro.titulo;
+      document.getElementById('livroAutor').textContent  = libro.autor;
+      const row = document.getElementById('generosRow');
+      row.innerHTML = '';
+      libro.generos.forEach(g => {
+        const emComum = generosDoUsuario.includes(g);
+        const span = document.createElement('span');
+        span.className = `tag-genero${emComum ? ' comum' : ''}`;
+        span.textContent = g;
+        if (emComum) span.title = 'Gênero em comum com você!';
+        row.appendChild(span);
+      });
+      const cfg = estadoConfig[libro.estado] || estadoConfig.bom;
+      document.getElementById('estadoBolinha').className = `estado-bolinha ${cfg.classe}`;
+      document.getElementById('estadoTexto').textContent = cfg.texto;
+      renderizarFotos();
+      const card = document.getElementById('cardAtual');
+      card.style.transform = '';
+      card.classList.remove('swipe-left', 'swipe-right');
+      document.getElementById('overlayLike').style.opacity = 0;
+      document.getElementById('overlayNope').style.opacity = 0;
+    }
+
+    function renderizarFotos() {
+      const slider = document.getElementById('fotosSlider');
+      const dots   = document.getElementById('fotoDots');
+      slider.innerHTML = dots.innerHTML = '';
+      fotosCard.forEach((foto, i) => {
+        if (foto.url) {
+          const img = document.createElement('img');
+          img.className = 'foto-slide'; img.src = foto.url; img.alt = foto.label;
+          img.onerror = () => img.replaceWith(criarPlaceholder(foto.label));
+          slider.appendChild(img);
+        } else { slider.appendChild(criarPlaceholder(foto.label)); }
+        const dot = document.createElement('div');
+        dot.className = `dot${i === fotoAtual ? ' ativo' : ''}`;
+        dot.onclick = () => irParaFoto(i);
+        dots.appendChild(dot);
+      });
+      atualizarSlider(); atualizarSetas();
+    }
+
+    function criarPlaceholder(label) {
+      const div = document.createElement('div');
+      div.className = 'foto-slide placeholder';
+      div.innerHTML = label === 'Capa' ? '📖' : '📸';
+      return div;
+    }
+
+    function mudarFoto(dir) {
+      fotoAtual = (fotoAtual + dir + fotosCard.length) % fotosCard.length;
+      atualizarSlider(); atualizarDots(); atualizarSetas();
+    }
+    function irParaFoto(idx) { fotoAtual = idx; atualizarSlider(); atualizarDots(); atualizarSetas(); }
+    function atualizarSlider() { document.getElementById('fotosSlider').style.transform = `translateX(-${fotoAtual * 100}%)`; }
+    function atualizarDots() { document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('ativo', i === fotoAtual)); }
+    function atualizarSetas() {
+      const v = fotosCard.length > 1 ? 'flex' : 'none';
+      document.getElementById('setaEsq').style.display = v;
+      document.getElementById('setaDir').style.display = v;
+    }
+
+    function abrirModalFoto() { document.getElementById('modalFoto').classList.add('aberto'); }
+    function fecharModalFoto() { document.getElementById('modalFoto').classList.remove('aberto'); }
+    function escolherFotoGaleria() { fecharModalFoto(); document.getElementById('inputFoto').click(); }
+
+    function proxLivro() { animarSaida('left'); }
+    async function curtirLivro() {
+      const livro = livros[indiceAtual];
+      if (!livro) return;
+      animarSaida('right');
+      try {
+        const resp = await fetch('api/curtir.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usuario: usuario.codusuario, estante_cod: livro.estante_cod, dono_id: livro.dono_id }),
+        });
+        const dados = await resp.json();
+        if (dados.match) mostrarToast(`🎉 Match com ${livro.dono.nome}!`);
+        else mostrarToast(`❤️ Você curtiu "${livro.titulo}"!`);
+      } catch (e) {
+        mostrarToast(`❤️ Você curtiu "${livro.titulo}"!`);
+      }
+    }
+    function animarSaida(dir) {
+      const card = document.getElementById('cardAtual');
+      card.classList.add(dir === 'right' ? 'swipe-right' : 'swipe-left');
+      setTimeout(() => { indiceAtual++; renderizarCard(indiceAtual); }, 380);
+    }
+    function mostrarFimCards() {
+      ['cardAtual', 'cardStack', 'acoesDiv'].forEach(id => document.getElementById(id).style.display = 'none');
+      document.getElementById('fimCards').style.display = 'flex';
+    }
+    function reiniciar() {
+      indiceAtual = 0;
+      ['cardAtual', 'cardStack'].forEach(id => document.getElementById(id).style.display = '');
+      document.getElementById('acoesDiv').style.display = 'flex';
+      document.getElementById('fimCards').style.display = 'none';
+      renderizarCard(0);
+    }
+
+    const card = document.getElementById('cardAtual');
+    function onStart(x) { arrastando = true; startX = x; card.style.transition = 'none'; }
+    function onMove(x) {
+      if (!arrastando) return;
+      currentX = x - startX;
+      card.style.transform = `translateX(${currentX}px) rotate(${currentX * 0.08}deg)`;
+      const l = document.getElementById('overlayLike'), n = document.getElementById('overlayNope');
+      if (currentX > 20)       { l.style.opacity = Math.min(currentX / 100, 1);  n.style.opacity = 0; }
+      else if (currentX < -20) { n.style.opacity = Math.min(-currentX / 100, 1); l.style.opacity = 0; }
+      else                     { l.style.opacity = 0; n.style.opacity = 0; }
+    }
+    function onEnd() {
+      if (!arrastando) return; arrastando = false; card.style.transition = '';
+      if (currentX > 80) curtirLivro();
+      else if (currentX < -80) proxLivro();
+      else {
+        card.style.transform = '';
+        document.getElementById('overlayLike').style.opacity = 0;
+        document.getElementById('overlayNope').style.opacity = 0;
+      }
+      currentX = 0;
+    }
+
+    card.addEventListener('mousedown',    e => { if (!e.target.closest('button')) onStart(e.clientX); });
+    document.addEventListener('mousemove', e => onMove(e.clientX));
+    document.addEventListener('mouseup',   () => onEnd());
+    card.addEventListener('touchstart', e => onStart(e.touches[0].clientX), { passive: true });
+    card.addEventListener('touchmove',  e => onMove(e.touches[0].clientX),  { passive: true });
+    card.addEventListener('touchend',   () => onEnd());
+
+    function mostrarToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('visivel');
+      setTimeout(() => t.classList.remove('visivel'), 3000);
+    }
+
+    function abrirModalDenuncia(event) {
+      event.stopPropagation(); 
+      const livro = livros[indiceAtual];
+      if (!livro) return;
+      document.getElementById('denuncia-subtitulo').textContent = `Denunciando item de: ${livro.dono.nome}`;
+      document.getElementById('denuncia-motivo').value = "";
+      document.getElementById('denuncia-detalhes').value = "";
+      document.getElementById('denuncia-tipo').value = "livro";
+      abrirModal('modal-denunciar');
+    }
+
+    async function enviarDenuncia() {
+      const motivo = document.getElementById('denuncia-motivo').value;
+      if (!motivo) {
+        mostrarToast('⚠️ Por favor, selecione o motivo principal.');
+        return;
+      }
+
+      const livroAtual = livros[indiceAtual];
+      const tipoDenuncia = document.getElementById('denuncia-tipo').value;
+      const detalhes = document.getElementById('denuncia-detalhes').value.trim();
+
+      try {
+        const resp = await fetch('api/denuncia.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            usuario: usuario.codusuario,
+            tipo: tipoDenuncia,
+            motivo,
+            detalhes,
+            estante_cod: livroAtual ? livroAtual.estante_cod : null,
+          }),
+        });
+        const dados = await resp.json();
+        if (dados.sucesso) {
+          fecharModal('modal-denunciar');
+          mostrarToast('🚨 Denúncia enviada com sucesso! A moderação irá analisar.');
+          proxLivro();
+        } else {
+          mostrarToast(dados.erro || '❌ Erro ao enviar denúncia.');
+        }
+      } catch (e) {
+        mostrarToast('❌ Erro ao conectar com o servidor.');
+      }
+    }
+
+    function abrirModal(id) { document.getElementById(id).classList.add('aberto'); }
+    function fecharModal(id) { document.getElementById(id).classList.remove('aberto'); }
+    function fecharModalFora(event, overlay) { if (event.target === overlay) fecharModal(overlay.id); }
+
+    function logoutDoSistema() {
+      sessionStorage.clear();
+      window.location.href = 'index.html';
+    }
+
+    carregarLivros();
+  </script>
+  <script src="badge_mensagens.js"></script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+name: Pipeline QAOps - BookMatch
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  quality-pipeline:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: bookmatch
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - name: 1. Checkout do código
+        uses: actions/checkout@v4
+
+      - name: 2. Configurar PHP 8.2 e extensões
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mysqli, pdo, pdo_mysql, curl
+          coverage: none
+
+      - name: 3. Instalar dependências (Composer)
+        run: composer install --no-interaction --prefer-dist
+
+      - name: 4. Quality Gate 1 - Validação de Sintaxe PHP (Build)
+        run: find BookMatch -name "*.php" -print0 | xargs -0 -n1 php -l
+
+      - name: 5. Quality Gate 2 - Análise Estática (PHPStan)
+        run: vendor/bin/phpstan analyse BookMatch/api --level=1
+
+      - name: 6. Preparar Banco de Dados e Servidor Local
+        env:
+          DB_HOST: 127.0.0.1
+          DB_NAME: bookmatch
+          DB_USER: root
+          DB_PASS: root
+        run: |
+          mysql -h 127.0.0.1 -u root -proot bookmatch < BookMatch/bookmatch.sql
+          php -S 127.0.0.1:8000 > /dev/null 2>&1 &
+          sleep 2
+
+      - name: 7. Quality Gate 3 - Testes Automatizados e Relatório
+        env:
+          DB_HOST: 127.0.0.1
+          DB_NAME: bookmatch
+          DB_USER: root
+          DB_PASS: root
+        run: vendor/bin/phpunit tests --log-junit test-report.xml
+
+      - name: 8. Publicar Evidências (Artefato)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-testes-qaops
+          path: test-report.xml

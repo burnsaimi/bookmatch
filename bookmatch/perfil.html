@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BookMatch – Perfil do Leitor</title>
+  <style>
+    @font-face { font-family: 'Radiant Charisma'; src: url('fonts/RadiantCharismaDEMO-Medium.ttf') format('truetype'); }
+    @font-face { font-family: 'Quicksand'; src: url('fonts/Quicksand-Bold.ttf') format('truetype'); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { height: 100vh; display: flex; font-family: 'Quicksand', sans-serif; background-color: #fffdf3; overflow: hidden; }
+
+    .barra-lateral { width: 280px; min-width: 280px; background-color: #701d1c; display: flex; flex-direction: column; padding: 50px 0 0 0; position: relative; overflow: hidden; z-index: 1; }
+    .barra-lateral::before { content: ''; position: absolute; bottom: -80px; left: -80px; width: 300px; height: 300px; background: rgba(173,114,114,0.22); border-radius: 45% 55% 40% 60%; pointer-events: none; }
+    .barra-lateral::after { content: ''; position: absolute; top: -40px; right: -40px; width: 180px; height: 180px; background: rgba(173,114,114,0.22); border-radius: 60% 40% 55% 45%; pointer-events: none; }
+    .container-nome-sistema { padding: 0 30px 50px; z-index: 2; }
+    .container-nome-sistema h1 { font-family: 'Radiant Charisma'; font-size: 36px; line-height: 0.9; }
+    .container-nome-sistema h1 span:first-child { color: #bcb24d; }
+    .container-nome-sistema h1 span:last-child  { color: #e6a921; }
+    .rotulo-nav { font-size: 10px; letter-spacing: 1.5px; color: rgba(255,255,255,0.5); padding: 20px 30px 10px; z-index: 2; font-weight: bold; }
+    .item-nav { display: flex; align-items: center; gap: 12px; padding: 12px 30px; color: #fff; font-size: 14px; cursor: pointer; transition: 0.3s; z-index: 2; text-decoration: none; }
+    .item-nav:hover { background: rgba(255,255,255,0.1); }
+    .item-nav.ativo { background: rgba(255,255,255,0.15); font-weight: bold; border-left: 4px solid #e6a921; }
+    .notificacao { margin-left: auto; background: #e4568b; color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 10px; }
+
+    /* Rodapé do menu lateral - Botão Sair */
+    .container-conta-nav {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      z-index: 2;
+      padding-bottom: 20px;
+    }
+    .btn-sair-lateral {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 30px;
+      color: #ffffff;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.3s;
+      text-decoration: none;
+      background: transparent;
+      border: none;
+      width: 100%;
+      text-align: left;
+      font-family: 'Quicksand', sans-serif;
+      font-weight: bold;
+    }
+    .btn-sair-lateral:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .conteudo-principal { flex: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; gap: 32px; }
+
+    .cartao-perfil {
+      background: #ede9d3;
+      border-radius: 24px;
+      padding: 30px;
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      box-shadow: 0 4px 20px rgba(112,29,28,0.05);
+      position: relative;
+    }
+    .perfil-avatar {
+      width: 90px; height: 90px; border-radius: 50%;
+      background: #e4568b; color: white;
+      font-family: 'Radiant Charisma'; font-size: 32px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1); flex-shrink: 0;
+    }
+    .perfil-info { flex: 1; }
+    .perfil-nome { font-family: 'Radiant Charisma'; font-size: 32px; color: #701d1c; margin-bottom: 4px; }
+    .perfil-localizacao { font-size: 13px; color: #a6a6a6; display: flex; align-items: center; gap: 4px; margin-bottom: 12px; }
+    .perfil-bio { font-size: 13px; color: #6a6a6a; line-height: 1.5; max-width: 600px; font-weight: normal; }
+
+    .perfil-metrias { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
+    .perfil-nota {
+      display: flex; align-items: center; gap: 6px;
+      background: #701d1c; color: white; border-radius: 20px;
+      padding: 6px 16px; font-size: 15px; font-weight: bold;
+    }
+    .perfil-nota span { color: #e6a921; }
+    .perfil-trocas-contador { font-size: 12px; color: #a6a6a6; font-weight: bold; }
+
+    .secao-estante { display: flex; flex-direction: column; gap: 12px; }
+    .secao-titulo-row { display: flex; align-items: center; gap: 12px; }
+    .secao-titulo { font-family: 'Quicksand'; font-weight: bold; color: #701d1c; font-size: 16px; }
+    .secao-badge { background: #6b7f46; color: white; font-size: 11px; padding: 3px 12px; border-radius: 20px; font-weight: bold; }
+    .secao-badge.quero { background: #e6a921; }
+
+    .fila-livros {
+      background: #ede9d3;
+      border-radius: 35px;
+      padding: 20px 30px;
+      display: flex;
+      gap: 24px;
+      overflow-x: auto;
+    }
+    .fila-livros::-webkit-scrollbar { display: none; }
+
+    .livro-item {
+      width: 80px; height: 115px;
+      background-color: #701d1c; border-radius: 8px; flex-shrink: 0;
+      box-shadow: 2px 4px 10px rgba(0,0,0,0.12);
+      display: flex; align-items: flex-end; justify-content: center;
+      padding: 8px; background-size: cover; background-position: center;
+      transition: transform 0.2s; cursor: pointer; position: relative;
+      overflow: hidden;
+    }
+    .livro-item:hover { transform: translateY(-4px); }
+    .livro-texto-fallback { color: #fff; font-size: 9px; font-weight: bold; text-align: center; line-height: 1.1; z-index: 2; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
+    
+    .livro-item::before { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.15); z-index: 1; }
+
+    .msg-vazia { color: #a6a6a6; font-size: 13px; font-style: italic; padding: 10px 0; }
+  </style>
+</head>
+<body>
+
+  <aside class="barra-lateral">
+    <div class="container-nome-sistema">
+      <h1><span>book</span><br><span>match</span></h1>
+    </div>
+    <span class="rotulo-nav">PRINCIPAL</span>
+    <a class="item-nav" href="estante.html">📚 Minha Estante</a>
+    <a class="item-nav" href="adicionarlivro.html">🔍 Adicionar Livro</a>
+    <a class="item-nav" href="descobrir.html">🔎 Descobrir Livros</a>
+    <a class="item-nav" href="curtidas.html"> 💕 Curtidas</a>
+    <a class="item-nav" href="mensagens.html">💬 Mensagens <span class="notificacao" id="badgeMsgs" style="display:none;">0</span></a>
+    <a class="item-nav" href="configuracao.html">⚙️ Configurações</a>
+    <span class="rotulo-nav">SUAS LISTAS</span>
+    <a class="item-nav" href="matches.html">❤️ Matches</a>
+    <a class="item-nav" href="troca.html">✅ Trocas</a>
+    <a class="item-nav" href="queroler.html">🛒 Quero ler</a>
+
+    <div class="container-conta-nav">
+      <span class="rotulo-nav">CONTA</span>
+      <button class="btn-sair-lateral" onclick="logoutDoSistema()">🚪 Sair</button>
+    </div>
+  </aside>
+
+  <main class="conteudo-principal">
+
+    <div class="cartao-perfil">
+      <div class="perfil-avatar" id="perf-avatar">--</div>
+      <div class="perfil-info">
+        <div class="perfil-nome" id="perf-nome">Carregando...</div>
+        <div class="perfil-localizacao">
+          <span>📍</span> <span id="perf-local">...</span>
+        </div>
+        <div class="perfil-bio" id="perf-bio">
+          ...
+        </div>
+      </div>
+      <div class="perfil-metrias">
+        <div class="perfil-nota">
+          <span>★</span> <span id="perf-nota">0.0</span>
+        </div>
+        <div class="perfil-trocas-contador" id="perf-trocas">0 trocas</div>
+      </div>
+    </div>
+
+    <div class="secao-estante">
+      <div class="secao-titulo-row">
+        <span class="secao-titulo">Disponíveis para Troca</span>
+        <span class="secao-badge" id="badge-troca">0 Livros</span>
+      </div>
+      <div class="fila-livros" id="fila-trocas">
+        <span class="msg-vazia">Nenhum livro disponível para troca no momento.</span>
+      </div>
+    </div>
+
+    <div class="secao-estante">
+      <div class="secao-titulo-row">
+        <span class="secao-titulo">Quero Ler (Lista de Desejos)</span>
+        <span class="secao-badge quero" id="badge-quero">0 Livros</span>
+      </div>
+      <div class="fila-livros" id="fila-quero">
+        <span class="msg-vazia">Nenhum livro na lista de desejos.</span>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    const usuarioLogado = JSON.parse(sessionStorage.getItem('usuario'));
+    if (!usuarioLogado?.codusuario) window.location.href = 'index.html';
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const usuarioIdDaUrl = parseInt(urlParams.get('id')) || usuarioLogado.codusuario;
+
+    function iniciaisDe(nome) {
+      return (nome || '?').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+    }
+
+    async function carregarPerfilDoServidor() {
+      try {
+        const resp = await fetch(`api/estante_livros.php?usuario=${usuarioIdDaUrl}`);
+        const dados = await resp.json();
+
+        const estante  = dados.estante   || [];
+        const queroLer = dados.quero_ler || [];
+
+        // Nome do dono: vem nos matches; senão usa o próprio usuário logado
+        let nome = (dados.matches && dados.matches[0] && dados.matches[0].dono_nome) || '';
+        if (!nome && usuarioIdDaUrl === usuarioLogado.codusuario) nome = usuarioLogado.nome;
+        if (!nome) nome = 'Leitor';
+
+        document.getElementById('perf-avatar').textContent = iniciaisDe(nome);
+        document.getElementById('perf-nome').textContent   = nome;
+        document.getElementById('perf-local').textContent  = '';
+        document.getElementById('perf-bio').textContent    = 'Leitor do BookMatch.';
+        document.getElementById('perf-nota').textContent   = '—';
+        document.getElementById('perf-trocas').textContent = `${estante.length} disponível${estante.length !== 1 ? 'is' : ''}`;
+
+        montarFilaPublica('fila-trocas', 'badge-troca', estante, "Nenhum livro para troca.");
+        montarFilaPublica('fila-quero', 'badge-quero', queroLer, "Nenhum livro na lista de desejos.");
+      } catch (erro) {
+        document.getElementById('perf-nome').textContent = 'Erro ao carregar perfil';
+      }
+    }
+
+    function montarFilaPublica(containerId, badgeId, listaLivros, textoVazio) {
+      const fila = document.getElementById(containerId);
+      const badge = document.getElementById(badgeId);
+
+      badge.textContent = `${listaLivros.length} Livro${listaLivros.length !== 1 ? 's' : ''}`;
+      fila.innerHTML = '';
+
+      if (listaLivros.length === 0) {
+        fila.innerHTML = `<span class="msg-vazia">${textoVazio}</span>`;
+        return;
+      }
+
+      listaLivros.forEach(l => {
+        const item = document.createElement('div');
+        item.className = 'livro-item';
+        if (l.foto && l.foto.trim() !== '') {
+          item.style.backgroundImage = `url('${l.foto}')`;
+        } else {
+          item.style.backgroundColor = '#701d1c';
+        }
+        item.innerHTML = `<span class="livro-texto-fallback">${l.titulo || ''}</span>`;
+        fila.appendChild(item);
+      });
+    }
+
+    function logoutDoSistema() {
+      sessionStorage.clear();
+      window.location.href = 'index.html';
+    }
+
+    carregarPerfilDoServidor();
+  </script>
+  <script src="badge_mensagens.js"></script>
+</body>
+</html>
