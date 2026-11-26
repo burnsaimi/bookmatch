@@ -15,7 +15,7 @@ Plataforma web de descoberta e troca de livros. Projeto da disciplina de Qualida
 2. Crie o banco e importe o esquema: `mysql -u root -p bookmatch < BookMatch/bookmatch.sql`
 3. Defina as variáveis de ambiente (nenhuma credencial fica no repositório):
    `DB_HOST`, `DB_NAME`, `DB_USER` e `DB_PASS`
-4. Inicie o servidor: `php -S 127.0.0.1:8000`
+4. Inicie o servidor na raiz do repositório: `php -S 127.0.0.1:8000` e acesse `http://127.0.0.1:8000/BookMatch/` no navegador.
 
 ## Como executar os testes
 
